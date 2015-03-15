@@ -2,17 +2,20 @@ var NUM_NEIGHBORS_TO_SHOW = 7;
 
 class World {
 	private boids: _Boid[];
-	private radius: number;
 	public nSteps = 0;
 
-	constructor(width: number, height: number, private renderer: Renderer, nBoids: number) {
-		this.radius = Math.min(width, height) / 2;
+	constructor(private radius: number, private renderer: Renderer) {
 		var standardFlocking = {seperationWeight: 1, alignmentWeight: 1, cohesionWeight: 1};
 		var standardGenetics = {preyFlocking: standardFlocking, predatorFlocking: standardFlocking, targetFlocking: standardFlocking};
 		this.boids = [];
-		for (var i=0; i<nBoids; i++) {
-			this.boids.push(new Prey(newVector().randomize(this.radius*Math.random()), newVector().randomize(), standardGenetics));
-		}
+	}
+
+	public addRandomPrey() {
+		var position = newVector().randomize(this.radius * Math.random()); // random within radius
+		var velocity = newVector().randomize(Prey.SPEED_FACTOR * BASE_SPEED * Math.random()); 
+		var genetics = randomGenetics();
+		var p = new Prey(position, velocity, genetics);
+		this.boids.push(p);
 	}
 
 	public neighbors(b: _Boid, showPredators: boolean) {
@@ -36,7 +39,6 @@ class World {
 			b.step(this.radius);
 		});
 		this.nSteps++;
-		console.log(this.nSteps);
 	}
 
 	public render() {

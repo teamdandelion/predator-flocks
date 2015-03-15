@@ -1,19 +1,8 @@
 var BASE_SPEED = 1;
-var MAX_FORCE = 1;
+var MAX_FORCE = 0.05;
 var COORDINATES_3D = false; // false -> 2d, true -> 3d
-var NEIGHBOR_RADIUS = 200;
-var SEPERATION_RADIUS = 80;
-interface FlockConfig {
-	seperationWeight: number;
-	alignmentWeight: number;
-	cohesionWeight: number;
-}
+var NEIGHBOR_RADIUS = 50;
 
-interface Genetics {
-	preyFlocking: FlockConfig; // how to flock in response to presence of prey
-	predatorFlocking: FlockConfig; // how to flock in response to presence of predators
-	targetFlocking: FlockConfig; // special instance of flocking to track a single "target" 
-}
 
 class _Boid {
 	public static SPEED_FACTOR: number;
@@ -23,7 +12,7 @@ class _Boid {
 	public position: Vector;
 	public velocity: Vector;
 	private maxSpeed: number;
-	private isPrey: boolean;
+	public isPrey: boolean;
 	private genetics: Genetics;
 	public boidID;
 
@@ -54,14 +43,14 @@ class _Boid {
 		this.velocity.add(a).limit(this.maxSpeed);
 	}
 
-	private seperate(neighbors: _Boid[]) {
+	private seperate(neighbors: _Boid[], seperationRadius: number) {
 		// This code is based on implementation by Harry Bundage found at http://harry.me/blog/2011/02/17/neat-algorithms-flocking/
 		var seperationVector = newVector();
 		var count = 0;
 		var zeroDetected = false;
 		neighbors.forEach((n) => {
 			var d = this.position.distance(n.position);
-			if (0 < d && d < SEPERATION_RADIUS) {
+			if (0 < d && d < seperationRadius) {
 				var vectorAway = this.position.clone().subtract(n.position);
 				vectorAway.normalize().divide(d);
 				seperationVector.add(vectorAway);
@@ -138,7 +127,7 @@ class _Boid {
 
 	private flock(neighbors: _Boid[], config: FlockConfig): Vector {
 		// This code is based on implementation by Harry Bundage found at http://harry.me/blog/2011/02/17/neat-algorithms-flocking/
-		var s = this.seperate(neighbors).mult(config.seperationWeight);
+		var s = this.seperate(neighbors, config.seperationRadius).mult(config.seperationWeight);
 		var a = this.align(neighbors).mult(config.alignmentWeight);
 		var c = this.cohere(neighbors).mult(config.cohesionWeight);
 		return s.add(a).add(c);

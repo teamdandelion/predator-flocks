@@ -65,7 +65,9 @@ class Vector2 implements Vector {
 	}
 
 	distance(v: Vector2): number {
-		return this.clone().subtract(v).norm();
+		var dx = this.x - v.x;
+		var dy = this.y - v.y;
+		return Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2))
 	}
 
 	limit(magnitude: number): Vector2 {
