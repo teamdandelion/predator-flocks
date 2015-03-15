@@ -1,0 +1,19 @@
+{
+  "name": "predator-flock",
+  "version": "0.0.0",
+  "homepage": "https://github.com/danmane/predator-flocks",
+  "authors": [
+    "Daniel Mané <danmane@gmail.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "d3": "~3.5.5"
+  }
+}

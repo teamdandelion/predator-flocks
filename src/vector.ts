@@ -4,6 +4,9 @@ interface Vector {
 	// are safe to mutate in this small project, but if I were making this part of
 	// a bigger codebase I would consider having the default methods return copies, and
 	// leave clearly-labeled-as-unsafe mutable vectors for use on the critical path
+	x: number;
+	y: number;
+	z: number;
 	clone(): Vector;
 	add(v: Vector): Vector;
 	subtract(v: Vector): Vector;
@@ -13,7 +16,10 @@ interface Vector {
 	distance(v: Vector): number;
 	normSq(): number;
 	norm(): number;
-	normalize(): Vector;
+	// normalize: set vector to have a given norm (length). defaults to 1
+	normalize(norm?: number): Vector;
+	// set vector to random values, with given norm (defualts to 1)
+	randomize(norm?: number): Vector; 
 	wrap(radius: number): Vector;
 }
 
@@ -26,8 +32,9 @@ function newVector(): Vector {
 }
 
 class Vector2 implements Vector {
+	public z = 0;
 	// All of the vector methods, except clone, mutate the vector.
-	constructor(private x=0, private y=0) {}
+	constructor(public x=0, public y=0) {}
 
 	clone(): Vector2 {
 		return new Vector2(this.x, this.y);
@@ -77,8 +84,15 @@ class Vector2 implements Vector {
 		return Math.sqrt(this.normSq());
 	}
 
-	normalize(): Vector2 {
-		this.mult(1/this.norm());
+	normalize(norm = 1): Vector2 {
+		this.mult(norm/this.norm());
+		return this;
+	}
+
+	randomize(norm = 1): Vector2 {
+		this.x = Math.random() - .5;
+		this.y = Math.random() - .5;
+		this.normalize(norm);
 		return this;
 	}
 
@@ -87,7 +101,7 @@ class Vector2 implements Vector {
 		var dist = zero.distance(this);
 		if (dist <= radius) return this; // shortcut out, since we will be adding a zero vector
 		var timesToWrap = Math.floor(dist / radius);
-		var vectorOnEdgeOfCircle = this.clone().limit(radius).mult(-1); // vector on opposite edge of circle
+		var vectorOnEdgeOfCircle = this.clone().limit(radius).mult(-2); // vector on opposite edge of circle
 		this.add(vectorOnEdgeOfCircle.mult(timesToWrap));
 		return this;
 	}

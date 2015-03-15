@@ -1,7 +1,7 @@
 var BASE_SPEED = 1;
 var MAX_FORCE = 1;
 var COORDINATES_3D = false; // false -> 2d, true -> 3d
-var NEIGHBOR_RADIUS = 400;
+var NEIGHBOR_RADIUS = 200;
 var SEPERATION_RADIUS = 80;
 interface FlockConfig {
 	seperationWeight: number;
@@ -20,8 +20,8 @@ class _Boid {
 	protected static IS_PREY: boolean;
 	private static ID_INCREMENTER = 0;
 
-	private position: Vector;
-	private velocity: Vector;
+	public position: Vector;
+	public velocity: Vector;
 	private maxSpeed: number;
 	private isPrey: boolean;
 	private genetics: Genetics;
@@ -58,6 +58,7 @@ class _Boid {
 		// This code is based on implementation by Harry Bundage found at http://harry.me/blog/2011/02/17/neat-algorithms-flocking/
 		var seperationVector = newVector();
 		var count = 0;
+		var zeroDetected = false;
 		neighbors.forEach((n) => {
 			var d = this.position.distance(n.position);
 			if (0 < d && d < SEPERATION_RADIUS) {
@@ -66,9 +67,13 @@ class _Boid {
 				seperationVector.add(vectorAway);
 				count++;
 			}
+			zeroDetected = zeroDetected || d == 0;
 		});
 		if (count > 0) {
 			seperationVector.divide(count);
+		} else if (zeroDetected) {
+			// every neighbor was at zero distance, so let's choose randomly where to go
+			seperationVector.randomize(MAX_FORCE);
 		}
 		return seperationVector;
 

@@ -6,7 +6,15 @@ class Renderer2D implements Renderer {
 	}
 
 	render(boids: _Boid[]): Renderer {
-		this.element.data(boids, (b) => b.boidID);
+		var update = this.element.selectAll("circle")
+			.data(boids, (b) => b.boidID);
+		update.enter()
+			.append("circle")
+			.attr("r", 2)
+			.attr("fill", "blue");
+		update.attr("cx", (d) => d.position.x + 400)
+			  .attr("cy", (d) => d.position.y + 400);
+
 		return this;
 	}
 }
