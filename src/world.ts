@@ -2,8 +2,8 @@ var NUM_NEIGHBORS_TO_SHOW = 7;
 var RANGE_TO_CONSUME = 5;
 
 class World {
-	private predators: D3.Map<Predator>; // ids of the predators
-	private prey: D3.Map<Prey>;
+	private predators: {[key: string]: Predator} ; // ids of the predators
+	private prey: {[key: string]: Prey};
 	private foodBackground: FoodBackground;
 	private neighborDetector: GridNeighborDetector;
 	public nSteps = 0;
@@ -11,8 +11,8 @@ class World {
 	constructor(public radius: number, private renderer: Renderer) {
 		var standardFlocking = {seperationWeight: 1, alignmentWeight: 1, cohesionWeight: 1};
 		var standardGenetics = {preyFlocking: standardFlocking, predatorFlocking: standardFlocking, targetFlocking: standardFlocking};
-		this.predators = d3.map();
-		this.prey = d3.map();
+		this.predators = {};
+		this.prey = {};
 		this.neighborDetector = new GridNeighborDetector(this.radius*2, this.radius*2, NEIGHBOR_RADIUS);
 		this.foodBackground = new FoodBackground(this.radius)
 	}
@@ -47,17 +47,17 @@ class World {
 	}
 
 	public addBoid(b: _Boid) {
-		var addTo: D3.Map<_Boid> = b.isPrey ? this.prey : this.predators;
+		var addTo: {[key: string]: _Boid} = b.isPrey ? this.prey : this.predators;
 		var id = b.boidID;
-		if (addTo.has(id)) {
+		if (addTo[id]) {
 			console.error("Duplicate boid with id", id);
 		}
-		addTo.set(id, b);
+		addTo[id] = b;
 	}
 
 	public neighbors(b: _Boid, prey: boolean): _Boid[] {
 		var mapToSearch = prey ? this.prey : this.predators;
-		var isRightType = (id: string) => mapToSearch.has(id);
+		var isRightType = (id: string) => !!mapToSearch[id];
 		var inRange = (x: _Boid) => b.position.distance(x.position, 0) <= NEIGHBOR_RADIUS;
 		
 		var compareFn = (b1: _Boid, b2: _Boid) => {
@@ -67,7 +67,7 @@ class World {
 		}
 		return this.neighborDetector.neighbors(b.boidID)
 					.filter(isRightType)
-					.map((id: string) => mapToSearch.get(id))
+					.map((id: string) => mapToSearch[id])
 					.filter(inRange)
 					.sort(compareFn)
 					.slice(0, NUM_NEIGHBORS_TO_SHOW);
@@ -75,20 +75,20 @@ class World {
 
 	public removeBoid(b: _Boid) {
 		var removeFrom = b.isPrey ? this.prey : this.predators;
-		if (!removeFrom.has(b.boidID)) {
+		if (!removeFrom[b.boidID]) {
 			console.error("tried to remove non-existent boid", b.boidID);
 		}
-		removeFrom.remove(b.boidID);
+		delete removeFrom[b.boidID];
 		this.neighborDetector.remove(b.boidID);
 	}
 
 	private reproduceBoid(mom: _Boid) {
-		var minDistance = Infinity;
+		var potentialParents: _Boid[] = this.neighbors(mom, mom.isPrey);
 		var dad: _Boid;
-		var potentialParents = mom.isPrey ? this.prey.values() : this.predators.values();
 		if (potentialParents.length == 1) {
 			dad = mom; // awwwwkward....
 		} else {
+			var minDistance = Infinity;
 			potentialParents.forEach((p: _Boid) => {
 				var dist = p.position.distance(mom.position, 0);
 				if (p != mom && dist < minDistance) {
@@ -108,7 +108,7 @@ class World {
 	}
 
 	public step() {
-		var allBoids = this.prey.values().concat(this.predators.values());
+		var allBoids = boidsFromMap(this.prey).concat(boidsFromMap(this.predators));
 		allBoids.forEach((b) => {
 			this.neighborDetector.add(b.boidID, b.position.x, b.position.y);
 		});
@@ -120,20 +120,30 @@ class World {
 			b.step(this.radius);
 		});
 
-		this.prey.values().forEach((p: Prey) => {
+		boidsFromMap(this.prey).forEach((p: Prey) => {
 			p.food += this.foodBackground.getFood(p.position, this.nSteps);
 		});
 
-		this.predators.values().forEach((d: Predator) => {
-			this.prey.values().forEach((y: Prey) => {
+		// Every predator will eat any nearby prey
+		var eatenThisTurn = {};
+		boidsFromMap(this.predators).forEach((d: Predator) => {
+			boidsFromMap(this.prey).forEach((y: Prey) => {
+				if (eatenThisTurn[y.boidID]) {
+					return; // otherwise we would eat the same boid twice
+					// nb this is the one time in which the iteration order matters, since 
+					// the predator that iterates first gets to win ties over food
+				}
 				if (d.position.distance(y.position, 0) <= RANGE_TO_CONSUME) {
 					d.food+= y.food;
 					this.removeBoid(y);
+					eatenThisTurn[y.boidID] = true;
 				}
 			});
 		});
 
-		allBoids = this.prey.values().concat(this.predators.values()); // since we removed some already
+		// rebuild the allBoids list since some have died this turn (RIP)
+		// handle both death (due to starvation) and birth in this cycle... very circle-of-life-y
+		allBoids = boidsFromMap(this.prey).concat(boidsFromMap(this.predators)); 
 		allBoids.forEach((b) => {
 			b.food -= b.food_burn;
 			if (b.food > b.reproduction_threshold && b.timeOfLastReproduction < this.nSteps + b.reproduction_counter) {
@@ -147,7 +157,10 @@ class World {
 	}
 
 	public render() {
-		this.renderer.renderPrey(this.prey.values());
-		this.renderer.renderPredators(this.predators.values());
+		this.renderer.renderPrey(boidsFromMap(this.prey));
+		this.renderer.renderPredators(boidsFromMap(this.predators));
 	}
 }
+
+// Utility method to get all of the boids out of a map from IDs to boids
+var boidsFromMap = (m: {[key: string]: _Boid}) => Object.keys(m).map((k) => m[k]);
