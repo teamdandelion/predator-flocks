@@ -91,7 +91,7 @@ function randomGenetics() {
 
 function sensibleGenetics() {
 	var prey = new FlockConfig(1, 1, 1, 10);
-	var predator = new FlockConfig(1, 1, 1, 10);
+	var predator = new FlockConfig(1, -1, -1, 20);
 	return new Genetics(prey, predator);
 }
 

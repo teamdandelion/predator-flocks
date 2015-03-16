@@ -18,8 +18,8 @@ class World {
 		this.boids.push(p);
 	}
 
-	public neighbors(b: _Boid, showPredators: boolean) {
-		if (showPredators) {
+	public neighbors(b: _Boid, prey: boolean) {
+		if (!prey) {
 			return []; // not impelemented 
 		}
 		var compareFn = (b1: _Boid, b2: _Boid) => {
