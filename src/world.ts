@@ -13,33 +13,22 @@ class World {
 		var standardGenetics = {preyFlocking: standardFlocking, predatorFlocking: standardFlocking, targetFlocking: standardFlocking};
 		this.predators = {};
 		this.prey = {};
-		this.neighborDetector = new GridNeighborDetector(this.radius*2, this.radius*2, NEIGHBOR_RADIUS);
+		this.neighborDetector = new GridNeighborDetector(this.radius*2, this.radius*2, C.NEIGHBOR_RADIUS);
 		this.foodBackground = new FoodBackground(this.radius)
 	}
 
-	public addRandomPrey() {
-		var position = newVector().randomize(this.radius * Math.random()); // random within radius
-		var velocity = newVector().randomize(Prey.SPEED_FACTOR * BASE_SPEED * Math.random()); 
-		var genetics = randomGenetics();
-		var p = new Prey(position, velocity, genetics);
-		p.timeOfLastReproduction = Math.floor(Math.random() * p.reproduction_counter);
+
+	public addPrey(g: Genetics, position?: Vector, velocity?: Vector) {
+		position = position ? position : newVector().randomize(this.radius * Math.random()); // random within radius
+		velocity = velocity ? velocity : newVector().randomize(Prey.SPEED_FACTOR * C.BASE_SPEED); 
+		var p = new Prey(position, velocity, g);
 		this.addBoid(p);
 	}
 
-	public addSensiblePrey() {
+	public addPredator(g: Genetics) {
 		var position = newVector().randomize(this.radius * Math.random()); // random within radius
-		var velocity = newVector().randomize(Prey.SPEED_FACTOR * BASE_SPEED * Math.random()); 
-		var genetics = preyGenetics();
-		var p = new Prey(position, velocity, genetics);
-		p.timeOfLastReproduction = Math.floor(Math.random() * p.reproduction_counter);
-		this.addBoid(p);
-	}
-
-	public addRandomPredator() {
-		var position = newVector().randomize(this.radius * Math.random()); // random within radius
-		var velocity = newVector().randomize(Predator.SPEED_FACTOR * BASE_SPEED * Math.random()); 
-		var genetics = predatorGenetics();
-		var p = new Predator(position, velocity, genetics);
+		var velocity = newVector().randomize(Prey.SPEED_FACTOR * C.BASE_SPEED); 
+		var p = new Predator(position, velocity, g);
 		this.addBoid(p);
 	}
 
@@ -52,10 +41,15 @@ class World {
 		addTo[id] = b;
 	}
 
+	public killAllBoids() {
+		var allBoids = boidsFromMap(this.prey).concat(boidsFromMap(this.predators));
+		allBoids.forEach((b) => this.removeBoid(b));
+	}
+
 	public neighbors(b: _Boid, prey: boolean): _Boid[] {
 		var mapToSearch = prey ? this.prey : this.predators;
 		var isRightType = (id: string) => !!mapToSearch[id];
-		var inRange = (x: _Boid) => b.position.distance(x.position, 0) <= NEIGHBOR_RADIUS;
+		var inRange = (x: _Boid) => b.position.distance(x.position, 0) <= C.NEIGHBOR_RADIUS;
 		
 		var compareFn = (b1: _Boid, b2: _Boid) => {
 			var d1 = b1.position.distance(b.position, this.radius);
@@ -98,8 +92,8 @@ class World {
 		var cons = mom.isPrey ? Prey : Predator;
 		var child = new cons(mom.position, mom.velocity, newGenetics);
 		this.addBoid(child);
-		child.food = mom.reproduction_threshold / 4;
-		mom.food -= mom.reproduction_threshold / 4;
+		child.food = mom.energyRequiredForReproduction / 4;
+		mom.food -= mom.energyRequiredForReproduction / 2;
 		mom.timeOfLastReproduction = this.nSteps;
 		child.timeOfLastReproduction = this.nSteps;
 	}
@@ -118,7 +112,7 @@ class World {
 		});
 
 		boidsFromMap(this.prey).forEach((p: Prey) => {
-			p.food += this.foodBackground.getFood(p.position, this.nSteps);
+			p.gainFood(this.foodBackground.getFood(p.position, this.nSteps));
 		});
 
 		// Every predator will eat any nearby prey
@@ -131,7 +125,7 @@ class World {
 					// the predator that iterates first gets to win ties over food
 				}
 				if (d.position.distance(y.position, 0) <= RANGE_TO_CONSUME) {
-					d.food+= y.food;
+					d.gainFood(y.food);
 					this.removeBoid(y);
 					eatenThisTurn[y.boidID] = true;
 				}
@@ -140,12 +134,17 @@ class World {
 
 		// rebuild the allBoids list since some have died this turn (RIP)
 		// handle both death (due to starvation) and birth in this cycle... very circle-of-life-y
+		var nPredators = Object.keys(this.predators).length;
+		var nPrey = Object.keys(this.prey).length;
 		allBoids = boidsFromMap(this.prey).concat(boidsFromMap(this.predators)); 
 		allBoids.forEach((b) => {
-			b.food -= b.food_burn;
-			if (b.food > b.reproduction_threshold && b.timeOfLastReproduction < this.nSteps + b.reproduction_counter) {
+			b.food -= b.foodEatenPerStep;
+			if (b.food > b.energyRequiredForReproduction 
+				&& b.timeOfLastReproduction < this.nSteps + b.turnsToReproduce
+				&& (nPrey + nPredators < C.MAX_BOIDS || !b.isPrey)) {
 				this.reproduceBoid(b);
-			} else if (b.food < 0) {
+			} else if (b.food < 0 && (b.isPrey || nPredators > 1 || nPrey === 0)) {
+				// if there's just one predator, let's allow it to survive unless there's an extinction event
 				this.removeBoid(b);
 			}
 		});

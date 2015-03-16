@@ -1,11 +1,9 @@
 var MAX_WEIGHT = 100;
 var MAX_RADIUS = 50;
 
-var WEIGHT_RANDOM_STDDEV = 0.5;
-var RADIUS_RANDOM_STTDEV = 1;
-var weightMutation = d3.random.normal(0, WEIGHT_RANDOM_STDDEV);
-var radiusMutation = d3.random.normal(0, RADIUS_RANDOM_STTDEV);
-var colorMutation = d3.random.normal(0, 2);
+var weightMutation = d3.random.normal(0, C.WEIGHT_MUTATION_CONSTANT);
+var radiusMutation = d3.random.normal(0, C.RADIUS_MUTATION_CONSTANT);
+var colorMutation = d3.random.normal(0, C.COLOR_MUTATION_CONSTANT);
 
 function bound(x, a, b) {
 	if (x < a) return a;
@@ -110,17 +108,25 @@ function randomGenetics() {
 	return new Genetics(randomFlocking(), randomFlocking(), randomFlocking(), randInt256(), randInt256(), randInt256());
 }
 
-function preyGenetics() {
+function flockingPreyGenetics() {
 	var prey = new FlockConfig(1, 1, 1, 10);
-	var predator = new FlockConfig(1, -1, -1, 20);
+	var predator = new FlockConfig(1, -1, -1, 40);
 	var closest = new FlockConfig(0, 0, 0, 0);
 	return new Genetics(prey, predator, closest, 0, 0, 255);
 }
 
+function nonFlockingPreyGenetics() {
+	var prey = new FlockConfig(1, 0, 0, 10);
+	var predator = new FlockConfig(1, -1, -1, 40);
+	var closest = new FlockConfig(0, 0, 0, 0);
+	return new Genetics(prey, predator, closest, 125, 125, 0);
+}
+
+
 function predatorGenetics() {
 	var prey = new FlockConfig(-1, 1, 1, 30);
-	var predator = new FlockConfig(5, 1, 1, 2);
-	var closest = new FlockConfig(-2, 2, 2, 20);
+	var predator = new FlockConfig(1, 1, 1, 30);
+	var closest = new FlockConfig(-2, 2, 2, 50);
 	return new Genetics(prey, predator, closest, 255, 0, 0);
 }
 

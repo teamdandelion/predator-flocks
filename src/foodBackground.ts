@@ -17,16 +17,21 @@ class FoodBackground {
 
 	public getFoodAtTile(step: number, x: number, y: number) {
 		var s = x.toString() + "," + y.toString();
-		var out: number;
-		if (this.xy2LastAccessTime.has(s)) {
-			out = (step - this.xy2LastAccessTime.get(s)) / this.stepsToRegen;
-			out = Math.min(out, 1);
+
+		var lastAccessTime: number;
+		if (!this.xy2LastAccessTime.has(s)) {
+			// set so if it were accessed at time 0, it would have STARTING_LEVEL
+			// (0 - lastTime) / STEPS_TO_REGEN = STARTING_LEVEL
+			// -lastTime = STARTING_LEVEL * STEPS_TO_REGEN
+			lastAccessTime = Math.round(-C.FOOD_STARTING_LEVEL * C.FOOD_STEPS_TO_REGEN);
 		} else {
-			out = 0.5;
+			lastAccessTime = this.xy2LastAccessTime.get(s);
 		}
+		var food = step - lastAccessTime / C.FOOD_STEPS_TO_REGEN;
+		food = Math.min(food, 1);
 		this.xy2LastAccessTime.set(s, step);
 		this._eatenThisTurn.push([x,y]);
-		return out;
+		return food;
 	}
 
 	public getFood(position: Vector, step: number) {
@@ -34,13 +39,13 @@ class FoodBackground {
 		var y = Math.round(position.y);
 		var food = 0;
 		// food += this.getFoodAtTile(step, x-1, y-1);
-		// food += this.getFoodAtTile(step, x, y-1);
+		food += this.getFoodAtTile(step, x, y-1);
 		// food += this.getFoodAtTile(step, x+1, y-1);
-		// food += this.getFoodAtTile(step, x-1, y);
+		food += this.getFoodAtTile(step, x-1, y);
 		food += this.getFoodAtTile(step, x, y);
-		// food += this.getFoodAtTile(step, x, y+1);
+		food += this.getFoodAtTile(step, x, y+1);
 		// food += this.getFoodAtTile(step, x+1, y-1);
-		// food += this.getFoodAtTile(step, x+1, y);
+		food += this.getFoodAtTile(step, x+1, y);
 		// food += this.getFoodAtTile(step, x+1, y+1);
 		return food;
 	}

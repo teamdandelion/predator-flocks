@@ -1,8 +1,4 @@
-var BASE_SPEED = 1;
-var COORDINATES_3D = false; // false -> 2d, true -> 3d
-var NEIGHBOR_RADIUS = 50;
-
-
+/// <reference path="constants.ts" />
 class _Boid {
 	public static SPEED_FACTOR: number;
 	protected static IS_PREY: boolean;
@@ -16,16 +12,17 @@ class _Boid {
 	public genetics: Genetics;
 	public boidID: string;
 	public age = 0;
-	public food_burn: number;
-	public reproduction_threshold: number;
-	public reproduction_counter: number;
+	public foodEatenPerStep: number;
+	public energyRequiredForReproduction: number;
+	public turnsToReproduce: number;
 	public food: number;
 	public maxForce: number;
 	public timeOfLastReproduction = 0;
+	public ageFactor: number;
 
 	constructor(initialPosition: Vector, initialVelocity: Vector, genetics: Genetics) {
 		// cute hack to get seperate default for Prey or Predator depending on which constructor was invoked.
-		this.maxSpeed = (<typeof _Boid> this.constructor).SPEED_FACTOR * BASE_SPEED; 
+		this.maxSpeed = (<typeof _Boid> this.constructor).SPEED_FACTOR * C.BASE_SPEED; 
 		this.isPrey = (<typeof _Boid> this.constructor).IS_PREY; 
 		this.position = initialPosition.clone();
 		this.velocity = initialVelocity.clone().limit(this.maxSpeed);
@@ -41,7 +38,10 @@ class _Boid {
 		}
 		this.position.add(this.velocity).wrap(worldRadius);
 		this.age++;
+	}
 
+	public gainFood(f: number) {
+		this.food += f * Math.pow(this.ageFactor, Math.round(this.age/60));
 	}
 
 	private computeAcceleration(world) {
@@ -99,7 +99,7 @@ class _Boid {
 		var count = 0;
 		neighbors.forEach((n) => {
 			var d = this.position.distance(n.position, worldRadius);
-			if (0 < d && d < NEIGHBOR_RADIUS) {
+			if (0 < d && d < C.NEIGHBOR_RADIUS) {
 				averageVelocity.add(n.velocity);
 				count++;
 			}
@@ -117,7 +117,7 @@ class _Boid {
 		var count = 0;
 		neighbors.forEach((n) => {
 			var d = this.position.distance(n.position, worldRadius);
-			if (0 < d && d < NEIGHBOR_RADIUS) {
+			if (0 < d && d < C.NEIGHBOR_RADIUS) {
 				averagePosition.add(n.position);
 				count++;
 			}
@@ -160,25 +160,27 @@ class _Boid {
 }
 
 class Prey extends _Boid {
-	public static SPEED_FACTOR = 1;
+	public static SPEED_FACTOR = C.PREY_SPEED_FACTOR;
 	protected static IS_PREY = true;
-	public radius = 2;
-	public food_burn = 0.2;
-	public reproduction_threshold = 250;
-	public food = 50;
-	public maxForce = 0.03;
-	public reproduction_counter = 200;
+	public radius = C.PREY_RADIUS;
+	public maxForce = C.PREY_MAX_FORCE;
+	public foodEatenPerStep = C.PREY_FOOD_PER_STEP;
+	public energyRequiredForReproduction = C.PREY_ENERGY_FOR_REPRODUCTION;
+	public food = C.PREY_STARTING_FOOD;
+	public turnsToReproduce = C.PREY_TURNS_TO_REPRODUCE;
+	public ageFactor = C.PREY_AGE_FACTOR;
 }
 
 class Predator extends _Boid {
-	public static SPEED_FACTOR = 1.3;
+	public static SPEED_FACTOR = C.PREDATOR_SPEED_FACTOR;
 	protected static IS_PREY = false;
 
-	public radius = 5;
-	public food_burn = 0.8;
-	public reproduction_threshold = 1500;
-	public food = 600;
-	public maxForce = 0.03;
-	public reproduction_counter = 600;
+	public radius = C.PREDATOR_RADIUS;
+	public maxForce = C.PREDATOR_MAX_FORCE;
+	public foodEatenPerStep = C.PREDATOR_FOOD_PER_STEP;
+	public energyRequiredForReproduction = C.PREDATOR_ENERGY_FOR_REPRODUCTION;
+	public food = C.PREDATOR_STARTING_FOOD;
+	public turnsToReproduce = C.PREDATOR_TURNS_TO_REPRODUCE;
+	public ageFactor = C.PREDATOR_AGE_FACTOR;
 }
 

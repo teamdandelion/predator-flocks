@@ -21,7 +21,7 @@ class Renderer2D implements Renderer {
 		ctx.arc(this.radius, this.radius, this.radius, 0, 2 * Math.PI, false);
 		ctx.fillStyle = "rgb(255,255,255)"
 		ctx.fill();
-		ctx.fillStyle = "rgba(0, 255, 0, 0.5)";
+		ctx.fillStyle = "rgba(0, 255, 0," +  C.FOOD_STARTING_LEVEL + ")";
 		ctx.fill();
 		ctx.closePath()
 	}
@@ -51,7 +51,7 @@ class Renderer2D implements Renderer {
 		var ctx = this.canvas.getContext('2d');
 		ctx.beginPath();
 		ctx.arc(this.radius, this.radius, this.radius, 0, 2 * Math.PI, false);
-		if (this.foodCounter++ === 50) {
+		if (this.foodCounter++ === Math.round(C.FOOD_STEPS_TO_REGEN / 100)) {
 			ctx.fillStyle = "rgba(0,255,0, 0.01)"
 			ctx.fill();
 			ctx.closePath();

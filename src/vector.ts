@@ -24,7 +24,7 @@ interface Vector {
 }
 
 function newVector(): Vector {
-	if (COORDINATES_3D) {
+	if (C.COORDINATES_3D) {
 		console.error("not implemented") //return new Vector3
 	} else {
 		return new Vector2();

@@ -1,6 +1,9 @@
 #outer {
     position: relative;
 }
+#buttons {
+    position: relative;
+}
 svg, canvas {
     position: absolute;
     left: 0;
