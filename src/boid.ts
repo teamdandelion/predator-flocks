@@ -1,5 +1,4 @@
 var BASE_SPEED = 1;
-var MAX_FORCE = 0.03;
 var COORDINATES_3D = false; // false -> 2d, true -> 3d
 var NEIGHBOR_RADIUS = 50;
 
@@ -8,6 +7,7 @@ class _Boid {
 	public static SPEED_FACTOR: number;
 	protected static IS_PREY: boolean;
 	private static ID_INCREMENTER = 0;
+	public radius: number;
 
 	public position: Vector;
 	public velocity: Vector;
@@ -17,6 +17,10 @@ class _Boid {
 	public boidID: string;
 	public age = 0;
 	public color = "black";
+	public food_burn: number;
+	public reproduction_threshold: number;
+	public food: number;
+	public maxForce: number;
 
 	constructor(initialPosition: Vector, initialVelocity: Vector, genetics: Genetics) {
 		// cute hack to get seperate default for Prey or Predator depending on which constructor was invoked.
@@ -31,7 +35,7 @@ class _Boid {
 	public step(worldRadius: number) {
 		var distToEdge = worldRadius - this.position.norm();
 		if (distToEdge < 20) {
-			var vectorIn = this.position.clone().mult(-1).normalize(MAX_FORCE * 100 / distToEdge / distToEdge);
+			var vectorIn = this.position.clone().mult(-1).normalize(this.maxForce * 100 / distToEdge / distToEdge);
 			this.velocity.add(vectorIn);
 		}
 		this.position.add(this.velocity).wrap(worldRadius);
@@ -71,7 +75,7 @@ class _Boid {
 			seperationVector.divide(count);
 		} else if (zeroDetected) {
 			// every neighbor was at zero distance, so let's choose randomly where to go
-			seperationVector.randomize(MAX_FORCE);
+			seperationVector.randomize(this.maxForce);
 		}
 		return seperationVector;
 
@@ -91,7 +95,7 @@ class _Boid {
 		if (count > 0) {
 			averageVelocity.mult(1/count);
 		}
-		averageVelocity.limit(MAX_FORCE);
+		averageVelocity.limit(this.maxForce);
 		return averageVelocity;
 	}
 
@@ -127,7 +131,7 @@ class _Boid {
 				desired.mult(this.maxSpeed);
 			}
 			steer = desired.subtract(this.velocity);
-			steer.limit(MAX_FORCE);
+			steer.limit(this.maxForce);
 		} else {
 			steer = newVector();
 		}
@@ -146,14 +150,24 @@ class _Boid {
 class Prey extends _Boid {
 	public static SPEED_FACTOR = 1;
 	protected static IS_PREY = true;
+	public radius = 2;
+	public food_burn = 0.15;
+	public reproduction_threshold = 50;
+	public food = 10;
+	public maxForce = 0.03;
 }
 
 class Predator extends _Boid {
-	public static SPEED_FACTOR = 1.3;
+	public static SPEED_FACTOR = 2;
 	protected static IS_PREY = false;
 
 	private targetBoid: Prey;
 	public preyEaten = 0;
+	public radius = 5;
+	public food_burn = .1;
+	public reproduction_threshold = 200;
+	public food = 80;
+	public maxForce = 0.06;
 
 	// private computeAcceleration(world): Vector {
 	// 	var a = super.computeAcceleration(world);

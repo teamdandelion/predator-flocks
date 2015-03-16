@@ -22,7 +22,7 @@ class Renderer2D implements Renderer {
 			.data(boids, (b) => b.boidID);
 		update.enter()
 			.append("circle")
-			.attr("r", 2)
+			.attr("r", (d) => d.radius)
 			.attr("fill", (d) => d.color);
 		update.attr("cx", (d) => d.position.x + this.radius)
 			  .attr("cy", (d) => d.position.y + this.radius);
@@ -37,10 +37,11 @@ class Renderer2D implements Renderer {
 			.data(boids, (b) => b.boidID);
 		update.enter()
 			.append("circle")
-			.attr("r", 5)
+			.attr("r", (d) => d.radius)
 			.attr("fill", (d) => d.color);
 		update.attr("cx", (d) => d.position.x + this.radius)
 			  .attr("cy", (d) => d.position.y + this.radius);
+		update.exit().remove();
 
 		return this;
 	}

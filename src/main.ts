@@ -22,4 +22,8 @@ window.onload = () => {
 	}
 	setInterval(go, 16);
 	testVector();
+
+	(<any> window).addPredator = () => {
+		world.addRandomPredator();
+	}
 }

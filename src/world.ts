@@ -4,6 +4,7 @@ var RANGE_TO_CONSUME = 5;
 class World {
 	private predators: D3.Map<Predator>; // ids of the predators
 	private prey: D3.Map<Prey>;
+	private foodBackground: FoodBackground;
 	public nSteps = 0;
 
 	constructor(public radius: number, private renderer: Renderer) {
@@ -11,6 +12,7 @@ class World {
 		var standardGenetics = {preyFlocking: standardFlocking, predatorFlocking: standardFlocking, targetFlocking: standardFlocking};
 		this.predators = d3.map();
 		this.prey = d3.map();
+		this.foodBackground = new FoodBackground(this.radius)
 	}
 
 	public addRandomPrey() {
@@ -41,7 +43,7 @@ class World {
 	}
 
 	public addBoid(b: _Boid) {
-		var addTo = b.isPrey ? this.prey : this.predators;
+		var addTo: D3.Map<_Boid> = b.isPrey ? this.prey : this.predators;
 		var id = b.boidID;
 		if (addTo.has(id)) {
 			console.error("Duplicate boid with id", id);
@@ -68,23 +70,27 @@ class World {
 		removeFrom.remove(b.boidID);
 	}
 
-	private reproducePrey() {
-		var prey = this.prey.values();
-		var mom = prey[Math.floor(Math.random() * prey.length)];
-
+	private reproduceBoid(mom: _Boid) {
 		var minDistance = Infinity;
-		var dad = null;
-		prey.forEach((p: Prey) => {
-			var dist = p.position.distance(mom.position, 0);
-			if (p != mom && dist < minDistance) {
-				minDistance = dist;
-				dad = p;
-			}
-		});
-		// var dad = prey[Math.floor(Math.random() * prey.length)];
+		var dad: _Boid;
+		var potentialParents = mom.isPrey ? this.prey.values() : this.predators.values();
+		if (potentialParents.length == 1) {
+			dad = mom; // awwwwkward....
+		} else {
+			potentialParents.forEach((p: _Boid) => {
+				var dist = p.position.distance(mom.position, 0);
+				if (p != mom && dist < minDistance) {
+					minDistance = dist;
+					dad = p;
+				}
+			});
+		}
 		var newGenetics = mom.genetics.reproduceWith(dad.genetics);
-		var newPrey = new Prey(mom.position, mom.velocity, newGenetics);
-		this.addBoid(newPrey);
+		var cons = mom.isPrey ? Prey : Predator;
+		var child = new cons(mom.position, mom.velocity, newGenetics);
+		this.addBoid(child);
+		child.food = mom.reproduction_threshold / 2;
+		mom.food -= mom.reproduction_threshold / 2;
 	}
 
 	public step() {
@@ -97,20 +103,28 @@ class World {
 			b.step(this.radius);
 		});
 
-		var boidsEaten = 0;
+		this.prey.values().forEach((p: Prey) => {
+			p.food += this.foodBackground.getFood(p.position, this.nSteps);
+		});
+
 		this.predators.values().forEach((d: Predator) => {
 			this.prey.values().forEach((y: Prey) => {
 				if (d.position.distance(y.position, 0) <= RANGE_TO_CONSUME) {
-					d.preyEaten++;
+					d.food+= y.food;
 					this.removeBoid(y);
-					boidsEaten++;
 				}
 			});
 		});
 
-		for (var i=0; i<boidsEaten; i++) {
-			this.reproducePrey();
-		}
+		allBoids = this.prey.values().concat(this.predators.values()); // since we removed some already
+		allBoids.forEach((b) => {
+			b.food -= b.food_burn;
+			if (b.food > b.reproduction_threshold) {
+				this.reproduceBoid(b);
+			} else if (b.food < 0) {
+				this.removeBoid(b);
+			}
+		});
 
 		this.nSteps++;
 	}
