@@ -26,30 +26,22 @@ class Renderer2D implements Renderer {
 		ctx.closePath()
 	}
 
-	public renderPrey(boids: Prey[]): Renderer {
-		var update = this.prey.selectAll("circle")
+	public renderBoids(boids: _Boid[], isPrey: boolean) {
+		var selection = isPrey ? this.prey : this.predators;
+
+		var colorF = (b: _Boid) => {
+			return "rgb(" + b.genetics.r + "," + b.genetics.g + ","+ b.genetics.b + ")";
+		}
+
+		var update = selection.selectAll("circle")
 			.data(boids, (b) => b.boidID);
 		update.enter()
 			.append("circle")
 			.attr("r", (d) => d.radius)
-			.attr("fill", (d) => d.color);
+			.attr("fill", colorF);
 		update.attr("cx", (d) => d.position.x + this.radius)
 			  .attr("cy", (d) => d.position.y + this.radius);
 
-		update.exit().remove();
-
-		return this;
-	}
-
-	public renderPredators(boids: Predator[]): Renderer {
-		var update = this.predators.selectAll("circle")
-			.data(boids, (b) => b.boidID);
-		update.enter()
-			.append("circle")
-			.attr("r", (d) => d.radius)
-			.attr("fill", (d) => d.color);
-		update.attr("cx", (d) => d.position.x + this.radius)
-			  .attr("cy", (d) => d.position.y + this.radius);
 		update.exit().remove();
 
 		return this;
@@ -67,12 +59,20 @@ class Renderer2D implements Renderer {
 		}
 
 		var eatenThisTurn = f.eatenThisTurn();
-		ctx.fillStyle = "rgb(255,255,255)"
 		eatenThisTurn.forEach((xy: number[]) => {
+			ctx.fillStyle = "rgb(255,255,255)"
 			ctx.beginPath();
 			ctx.arc(xy[0] + this.radius, xy[1] + this.radius, 1, 0, 2*Math.PI, false);
 			ctx.fill();
 			ctx.closePath();
+
+			// // add a bigger but lower opacity circle for antialiasing
+			// ctx.fillStyle = "rgba(255,255,255, 0.5)"
+			// ctx.beginPath();
+			// ctx.arc(xy[0] + this.radius, xy[1] + this.radius, 2, 0, 2*Math.PI, false);
+			// ctx.fill();
+			// ctx.closePath();
+
 		});
 		return this;
 	}

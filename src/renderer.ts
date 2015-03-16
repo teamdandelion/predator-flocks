@@ -1,5 +1,4 @@
 interface Renderer {
-	renderPrey(boids: _Boid[]): Renderer;
-	renderPredators(boids: _Boid[]): Renderer;
+	renderBoids(boids: _Boid[], isPrey: boolean): Renderer;
 	renderBackground(f: FoodBackground): Renderer;
 }

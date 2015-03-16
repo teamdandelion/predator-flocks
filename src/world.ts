@@ -23,7 +23,6 @@ class World {
 		var genetics = randomGenetics();
 		var p = new Prey(position, velocity, genetics);
 		p.timeOfLastReproduction = Math.floor(Math.random() * p.reproduction_counter);
-		p.color = "green";
 		this.addBoid(p);
 	}
 
@@ -33,7 +32,6 @@ class World {
 		var genetics = preyGenetics();
 		var p = new Prey(position, velocity, genetics);
 		p.timeOfLastReproduction = Math.floor(Math.random() * p.reproduction_counter);
-		p.color = "blue";
 		this.addBoid(p);
 	}
 
@@ -42,7 +40,6 @@ class World {
 		var velocity = newVector().randomize(Predator.SPEED_FACTOR * BASE_SPEED * Math.random()); 
 		var genetics = predatorGenetics();
 		var p = new Predator(position, velocity, genetics);
-		p.color = "red";
 		this.addBoid(p);
 	}
 
@@ -157,8 +154,8 @@ class World {
 	}
 
 	public render() {
-		this.renderer.renderPrey(boidsFromMap(this.prey));
-		this.renderer.renderPredators(boidsFromMap(this.predators));
+		this.renderer.renderBoids(boidsFromMap(this.prey), true);
+		this.renderer.renderBoids(boidsFromMap(this.predators), false);
 		this.renderer.renderBackground(this.foodBackground);
 	}
 }

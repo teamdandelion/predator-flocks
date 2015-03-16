@@ -16,7 +16,6 @@ class _Boid {
 	public genetics: Genetics;
 	public boidID: string;
 	public age = 0;
-	public color = "black";
 	public food_burn: number;
 	public reproduction_threshold: number;
 	public reproduction_counter: number;
