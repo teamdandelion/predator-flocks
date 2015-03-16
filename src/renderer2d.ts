@@ -17,13 +17,28 @@ class Renderer2D implements Renderer {
 		this.predators = this.element.append("g").classed("predators", true);
 	}
 
-	render(boids: _Boid[]): Renderer {
+	renderPrey(boids: Prey[]): Renderer {
 		var update = this.prey.selectAll("circle")
 			.data(boids, (b) => b.boidID);
 		update.enter()
 			.append("circle")
 			.attr("r", 2)
-			.attr("fill", "blue");
+			.attr("fill", (d) => d.color);
+		update.attr("cx", (d) => d.position.x + this.radius)
+			  .attr("cy", (d) => d.position.y + this.radius);
+
+		update.exit().remove();
+
+		return this;
+	}
+
+	renderPredators(boids: Predator[]): Renderer {
+		var update = this.predators.selectAll("circle")
+			.data(boids, (b) => b.boidID);
+		update.enter()
+			.append("circle")
+			.attr("r", 5)
+			.attr("fill", (d) => d.color);
 		update.attr("cx", (d) => d.position.x + this.radius)
 			  .attr("cy", (d) => d.position.y + this.radius);
 

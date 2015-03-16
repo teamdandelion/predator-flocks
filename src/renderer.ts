@@ -1,3 +1,4 @@
 interface Renderer {
-	render(boids: _Boid[]): Renderer;
+	renderPrey(boids: _Boid[]): Renderer;
+	renderPredators(boids: _Boid[]): Renderer;
 }

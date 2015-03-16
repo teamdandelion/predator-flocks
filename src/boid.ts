@@ -1,5 +1,5 @@
 var BASE_SPEED = 1;
-var MAX_FORCE = 0.05;
+var MAX_FORCE = 0.03;
 var COORDINATES_3D = false; // false -> 2d, true -> 3d
 var NEIGHBOR_RADIUS = 50;
 
@@ -13,8 +13,10 @@ class _Boid {
 	public velocity: Vector;
 	private maxSpeed: number;
 	public isPrey: boolean;
-	private genetics: Genetics;
-	public boidID;
+	public genetics: Genetics;
+	public boidID: string;
+	public age = 0;
+	public color = "black";
 
 	constructor(initialPosition: Vector, initialVelocity: Vector, genetics: Genetics) {
 		// cute hack to get seperate default for Prey or Predator depending on which constructor was invoked.
@@ -23,7 +25,7 @@ class _Boid {
 		this.position = initialPosition.clone();
 		this.velocity = initialVelocity.clone().limit(this.maxSpeed);
 		this.genetics = genetics;
-		this.boidID = _Boid.ID_INCREMENTER++;
+		this.boidID = (_Boid.ID_INCREMENTER++).toString();
 	}
 
 	public step(worldRadius: number) {
@@ -33,6 +35,7 @@ class _Boid {
 			this.velocity.add(vectorIn);
 		}
 		this.position.add(this.velocity).wrap(worldRadius);
+		this.age++;
 
 	}
 
@@ -150,6 +153,7 @@ class Predator extends _Boid {
 	protected static IS_PREY = false;
 
 	private targetBoid: Prey;
+	public preyEaten = 0;
 
 	// private computeAcceleration(world): Vector {
 	// 	var a = super.computeAcceleration(world);
