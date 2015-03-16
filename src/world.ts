@@ -5,6 +5,7 @@ class World {
 	private predators: D3.Map<Predator>; // ids of the predators
 	private prey: D3.Map<Prey>;
 	private foodBackground: FoodBackground;
+	private neighborDetector: GridNeighborDetector;
 	public nSteps = 0;
 
 	constructor(public radius: number, private renderer: Renderer) {
@@ -12,6 +13,7 @@ class World {
 		var standardGenetics = {preyFlocking: standardFlocking, predatorFlocking: standardFlocking, targetFlocking: standardFlocking};
 		this.predators = d3.map();
 		this.prey = d3.map();
+		this.neighborDetector = new GridNeighborDetector(this.radius*2, this.radius*2, NEIGHBOR_RADIUS);
 		this.foodBackground = new FoodBackground(this.radius)
 	}
 
@@ -53,15 +55,22 @@ class World {
 		addTo.set(id, b);
 	}
 
-	public neighbors(b: _Boid, prey: boolean) {
-		var findFrom = prey ? this.prey : this.predators;
+	public neighbors(b: _Boid, prey: boolean): _Boid[] {
+		var mapToSearch = prey ? this.prey : this.predators;
+		var isRightType = (id: string) => mapToSearch.has(id);
 		var inRange = (x: _Boid) => b.position.distance(x.position, 0) <= NEIGHBOR_RADIUS;
+		
 		var compareFn = (b1: _Boid, b2: _Boid) => {
 			var d1 = b1.position.distance(b.position, this.radius);
 			var d2 = b2.position.distance(b.position, this.radius);
 			return d1 - d2;
 		}
-		return findFrom.values().filter(inRange).sort(compareFn).slice(0, NUM_NEIGHBORS_TO_SHOW);
+		return this.neighborDetector.neighbors(b.boidID)
+					.filter(isRightType)
+					.map((id: string) => mapToSearch.get(id))
+					.filter(inRange)
+					.sort(compareFn)
+					.slice(0, NUM_NEIGHBORS_TO_SHOW);
 	}
 
 	public removeBoid(b: _Boid) {
@@ -70,6 +79,7 @@ class World {
 			console.error("tried to remove non-existent boid", b.boidID);
 		}
 		removeFrom.remove(b.boidID);
+		this.neighborDetector.remove(b.boidID);
 	}
 
 	private reproduceBoid(mom: _Boid) {
@@ -99,6 +109,9 @@ class World {
 
 	public step() {
 		var allBoids = this.prey.values().concat(this.predators.values());
+		allBoids.forEach((b) => {
+			this.neighborDetector.add(b.boidID, b.position.x, b.position.y);
+		});
 		allBoids.forEach((b) => {
 			b.accelerate(this);
 		});

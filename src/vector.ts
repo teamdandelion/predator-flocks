@@ -114,33 +114,4 @@ class Vector2 implements Vector {
 	}
 }
 
-// if this were a more serious project i would set up a unit testing framework, 
-// but for now i'll just inline tests here and call them from console
-var assert = (expected, actual, message) => {
-	if (expected != actual) {
-		console.error(message, "Expected ", expected, "but got", actual);
-	}
-}
-
-var assertClose = (expected, actual, message, margin=0.1) => {
-	if (actual < expected - 0.1 || actual > expected + 0.1) {
-		console.error(message, "Expected ", expected, "to be close to", actual);
-	}
-}
-
-var testVector = () => {
-	var v = new Vector2(0, 1.1);
-	assertClose(-.9, v.wrap(1), "1.1 wraps to -.9 on radius 1");
-	var vWrap = new Vector2(0, 2);
-	assert(2, vWrap.wrap(2).y, "2 wraps over 2 to 2");
-	assert(0, vWrap.wrap(1).y, "2 wraps over 1 to 0");
-
-	var v0 = new Vector2();
-	var v1 = new Vector2(0, 1);
-	var v2 = new Vector2(0, -1);
-	assert(0, v1.distance(v2, 1), "wrap 1 to -1");
-}
-
-
-
 
