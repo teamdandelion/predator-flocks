@@ -5,15 +5,11 @@
 window.onload = () => {
 	var renderer = new Renderer2D(400, "svg");
 	var world = new World(400, renderer);
-	for (var i=0; i<20; i++) {
-		world.addRandomPrey();
-	}
-
-	for (var i=0; i<100; i++) {
+	for (var i=0; i<40; i++) {
 		world.addSensiblePrey();
 	}
 
-	for (var i=0; i<3; i++) {
+	for (var i=0; i<2; i++) {
 		world.addRandomPredator();
 	}
 	var go = () => {

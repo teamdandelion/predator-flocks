@@ -22,15 +22,15 @@ class FoodBackground {
 		var x = Math.round(position.x);
 		var y = Math.round(position.y);
 		var food = 0;
-		food += this.getFoodAtTile(step, x-1, y-1);
-		food += this.getFoodAtTile(step, x, y-1);
-		food += this.getFoodAtTile(step, x+1, y-1);
-		food += this.getFoodAtTile(step, x-1, y);
+		// food += this.getFoodAtTile(step, x-1, y-1);
+		// food += this.getFoodAtTile(step, x, y-1);
+		// food += this.getFoodAtTile(step, x+1, y-1);
+		// food += this.getFoodAtTile(step, x-1, y);
 		food += this.getFoodAtTile(step, x, y);
-		food += this.getFoodAtTile(step, x, y+1);
-		food += this.getFoodAtTile(step, x+1, y-1);
-		food += this.getFoodAtTile(step, x+1, y);
-		food += this.getFoodAtTile(step, x+1, y+1);
-		return food/9;
+		// food += this.getFoodAtTile(step, x, y+1);
+		// food += this.getFoodAtTile(step, x+1, y-1);
+		// food += this.getFoodAtTile(step, x+1, y);
+		// food += this.getFoodAtTile(step, x+1, y+1);
+		return food;
 	}
 }

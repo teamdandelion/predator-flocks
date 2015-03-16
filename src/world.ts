@@ -20,6 +20,7 @@ class World {
 		var velocity = newVector().randomize(Prey.SPEED_FACTOR * BASE_SPEED * Math.random()); 
 		var genetics = randomGenetics();
 		var p = new Prey(position, velocity, genetics);
+		p.timeOfLastReproduction = Math.floor(Math.random() * p.reproduction_counter);
 		p.color = "green";
 		this.addBoid(p);
 	}
@@ -29,6 +30,7 @@ class World {
 		var velocity = newVector().randomize(Prey.SPEED_FACTOR * BASE_SPEED * Math.random()); 
 		var genetics = preyGenetics();
 		var p = new Prey(position, velocity, genetics);
+		p.timeOfLastReproduction = Math.floor(Math.random() * p.reproduction_counter);
 		p.color = "blue";
 		this.addBoid(p);
 	}
@@ -89,8 +91,10 @@ class World {
 		var cons = mom.isPrey ? Prey : Predator;
 		var child = new cons(mom.position, mom.velocity, newGenetics);
 		this.addBoid(child);
-		child.food = mom.reproduction_threshold / 2;
-		mom.food -= mom.reproduction_threshold / 2;
+		child.food = mom.reproduction_threshold / 4;
+		mom.food -= mom.reproduction_threshold / 4;
+		mom.timeOfLastReproduction = this.nSteps;
+		child.timeOfLastReproduction = this.nSteps;
 	}
 
 	public step() {
@@ -119,7 +123,7 @@ class World {
 		allBoids = this.prey.values().concat(this.predators.values()); // since we removed some already
 		allBoids.forEach((b) => {
 			b.food -= b.food_burn;
-			if (b.food > b.reproduction_threshold) {
+			if (b.food > b.reproduction_threshold && b.timeOfLastReproduction < this.nSteps + b.reproduction_counter) {
 				this.reproduceBoid(b);
 			} else if (b.food < 0) {
 				this.removeBoid(b);

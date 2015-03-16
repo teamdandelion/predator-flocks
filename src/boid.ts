@@ -19,8 +19,10 @@ class _Boid {
 	public color = "black";
 	public food_burn: number;
 	public reproduction_threshold: number;
+	public reproduction_counter: number;
 	public food: number;
 	public maxForce: number;
+	public timeOfLastReproduction = 0;
 
 	constructor(initialPosition: Vector, initialVelocity: Vector, genetics: Genetics) {
 		// cute hack to get seperate default for Prey or Predator depending on which constructor was invoked.
@@ -48,6 +50,17 @@ class _Boid {
 		var flockPrey = this.flock(prey, this.genetics.preyFlocking, world.radius);
 		var predators = world.neighbors(this, false);
 		var flockPredators = this.flock(predators, this.genetics.predatorFlocking, world.radius);
+
+
+		if (!this.isPrey) {
+			// predators can get stuck in a sad "buridan's donkey" esque situation where they are
+			// unable to decide when in the midst of a lot of prey.
+			// this setting allows them to chase the closest one
+			var closestPrey = prey.slice(0, 1);
+			var flockClosest = this.flock(closestPrey, this.genetics.closestFlocking, world.radius);
+			flockPrey.add(flockClosest);
+		}
+
 		return flockPrey.add(flockPredators);
 	}
 
@@ -151,32 +164,22 @@ class Prey extends _Boid {
 	public static SPEED_FACTOR = 1;
 	protected static IS_PREY = true;
 	public radius = 2;
-	public food_burn = 0.15;
-	public reproduction_threshold = 50;
-	public food = 10;
+	public food_burn = 0.4;
+	public reproduction_threshold = 250;
+	public food = 20;
 	public maxForce = 0.03;
+	public reproduction_counter = 200;
 }
 
 class Predator extends _Boid {
-	public static SPEED_FACTOR = 2;
+	public static SPEED_FACTOR = 1.3;
 	protected static IS_PREY = false;
 
-	private targetBoid: Prey;
-	public preyEaten = 0;
 	public radius = 5;
-	public food_burn = .1;
-	public reproduction_threshold = 200;
-	public food = 80;
-	public maxForce = 0.06;
-
-	// private computeAcceleration(world): Vector {
-	// 	var a = super.computeAcceleration(world);
-	// 	this.chooseTarget(world);
-	// 	if (this.targetBoid != null) {
-	// 		var at = this.flock([this.targetBoid], genetics.targetFlocking);
-	// 		a.add(at);
-	// 	}
-	// 	return a;
-	// }
+	public food_burn = 1;
+	public reproduction_threshold = 1500;
+	public food = 600;
+	public maxForce = 0.03;
+	public reproduction_counter = 600;
 }
 
