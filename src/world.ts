@@ -159,6 +159,7 @@ class World {
 	public render() {
 		this.renderer.renderPrey(boidsFromMap(this.prey));
 		this.renderer.renderPredators(boidsFromMap(this.predators));
+		this.renderer.renderBackground(this.foodBackground);
 	}
 }
 

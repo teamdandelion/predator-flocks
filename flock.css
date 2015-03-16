@@ -1,4 +1,8 @@
-.worldbounds {
-    fill: aliceblue;
-    border: 1px solid black;
+#outer {
+    position: relative;
+}
+svg, canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
 }

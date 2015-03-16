@@ -1,8 +1,18 @@
 class FoodBackground {
-	private stepsToRegen = 1000;
+	private stepsToRegen = 5000;
 	private xy2LastAccessTime: D3.Map<number>;
+	private _eatenThisTurn: number[][];
+
+
 	constructor(public radius: number) {
 		this.xy2LastAccessTime = d3.map();
+		this._eatenThisTurn = [];
+	}
+
+	public eatenThisTurn(): number[][] {
+		var copy = this._eatenThisTurn;
+		this._eatenThisTurn = [];
+		return copy;
 	}
 
 	public getFoodAtTile(step: number, x: number, y: number) {
@@ -12,9 +22,10 @@ class FoodBackground {
 			out = (step - this.xy2LastAccessTime.get(s)) / this.stepsToRegen;
 			out = Math.min(out, 1);
 		} else {
-			out = 1;
+			out = 0.5;
 		}
 		this.xy2LastAccessTime.set(s, step);
+		this._eatenThisTurn.push([x,y]);
 		return out;
 	}
 

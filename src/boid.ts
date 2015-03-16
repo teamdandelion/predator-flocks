@@ -164,9 +164,9 @@ class Prey extends _Boid {
 	public static SPEED_FACTOR = 1;
 	protected static IS_PREY = true;
 	public radius = 2;
-	public food_burn = 0.4;
+	public food_burn = 0.2;
 	public reproduction_threshold = 250;
-	public food = 20;
+	public food = 50;
 	public maxForce = 0.03;
 	public reproduction_counter = 200;
 }
@@ -176,7 +176,7 @@ class Predator extends _Boid {
 	protected static IS_PREY = false;
 
 	public radius = 5;
-	public food_burn = 1;
+	public food_burn = 0.8;
 	public reproduction_threshold = 1500;
 	public food = 600;
 	public maxForce = 0.03;
