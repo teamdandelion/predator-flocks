@@ -143,9 +143,14 @@ class World {
 				&& b.timeOfLastReproduction < this.nSteps + b.turnsToReproduce
 				&& (nPrey + nPredators < C.MAX_BOIDS || !b.isPrey)) {
 				this.reproduceBoid(b);
-			} else if (b.food < 0 && (b.isPrey || nPredators > 1 || nPrey === 0)) {
+			} else if (b.food < 0) {
+				if (!b.isPrey && nPredators == 1 && nPrey > 0) {
 				// if there's just one predator, let's allow it to survive unless there's an extinction event
-				this.removeBoid(b);
+					b.food = 0;
+					b.age = 0;
+				} else {
+					this.removeBoid(b);
+				}
 			}
 		});
 
