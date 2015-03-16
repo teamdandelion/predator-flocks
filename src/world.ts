@@ -71,7 +71,17 @@ class World {
 	private reproducePrey() {
 		var prey = this.prey.values();
 		var mom = prey[Math.floor(Math.random() * prey.length)];
-		var dad = prey[Math.floor(Math.random() * prey.length)];
+
+		var minDistance = Infinity;
+		var dad = null;
+		prey.forEach((p: Prey) => {
+			var dist = p.position.distance(mom.position, 0);
+			if (p != mom && dist < minDistance) {
+				minDistance = dist;
+				dad = p;
+			}
+		});
+		// var dad = prey[Math.floor(Math.random() * prey.length)];
 		var newGenetics = mom.genetics.reproduceWith(dad.genetics);
 		var newPrey = new Prey(mom.position, mom.velocity, newGenetics);
 		this.addBoid(newPrey);
