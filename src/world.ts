@@ -56,10 +56,17 @@ class World {
 			var d2 = b2.position.distance(b.position, this.radius);
 			return d1 - d2;
 		}
-		return this.neighborDetector.neighbors(b.boidID)
-					.filter(isRightType)
-					.map((id: string) => mapToSearch[id])
-					.filter(inRange)
+
+		var neighborsToCheck: _Boid[];
+		if (b.isPrey) {
+			neighborsToCheck = this.neighborDetector.neighbors(b.boidID)
+									.filter(isRightType)
+									.map((id: string) => mapToSearch[id])
+									.filter(inRange);
+		} else {
+			neighborsToCheck = boidsFromMap(this.prey)
+		}
+		return neighborsToCheck
 					.sort(compareFn)
 					.slice(0, NUM_NEIGHBORS_TO_SHOW);
 	}
@@ -128,6 +135,7 @@ class World {
 					d.gainFood(y.food);
 					this.removeBoid(y);
 					eatenThisTurn[y.boidID] = true;
+					d.busyEating = C.CONSUMPTION_TIME;
 				}
 			});
 		});
@@ -144,7 +152,7 @@ class World {
 				&& (nPrey + nPredators < C.MAX_BOIDS || !b.isPrey)) {
 				this.reproduceBoid(b);
 			} else if (b.food < 0) {
-				if (!b.isPrey && nPredators == 1 && nPrey > 0) {
+				if (!b.isPrey && nPredators <=3 && nPrey > 0) {
 				// if there's just one predator, let's allow it to survive unless there's an extinction event
 					b.food = 0;
 					b.age = 0;

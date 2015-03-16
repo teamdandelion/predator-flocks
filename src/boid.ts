@@ -182,5 +182,15 @@ class Predator extends _Boid {
 	public food = C.PREDATOR_STARTING_FOOD;
 	public turnsToReproduce = C.PREDATOR_TURNS_TO_REPRODUCE;
 	public ageFactor = C.PREDATOR_AGE_FACTOR;
+	public busyEating = 0;
+
+	public accelerate(world) {
+		if (this.busyEating > 0) {
+			this.busyEating--;
+			this.velocity.mult(0);
+		} else {
+			super.accelerate(world);
+		}
+	}
 }
 

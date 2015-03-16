@@ -27,7 +27,7 @@ class FoodBackground {
 		} else {
 			lastAccessTime = this.xy2LastAccessTime.get(s);
 		}
-		var food = step - lastAccessTime / C.FOOD_STEPS_TO_REGEN;
+		var food = (step - lastAccessTime) / C.FOOD_STEPS_TO_REGEN;
 		food = Math.min(food, 1);
 		this.xy2LastAccessTime.set(s, step);
 		this._eatenThisTurn.push([x,y]);
@@ -39,14 +39,14 @@ class FoodBackground {
 		var y = Math.round(position.y);
 		var food = 0;
 		// food += this.getFoodAtTile(step, x-1, y-1);
-		food += this.getFoodAtTile(step, x, y-1);
+		// food += this.getFoodAtTile(step, x, y-1);
 		// food += this.getFoodAtTile(step, x+1, y-1);
-		food += this.getFoodAtTile(step, x-1, y);
+		// food += this.getFoodAtTile(step, x-1, y);
 		food += this.getFoodAtTile(step, x, y);
-		food += this.getFoodAtTile(step, x, y+1);
+		// food += this.getFoodAtTile(step, x, y+1);
 		// food += this.getFoodAtTile(step, x+1, y-1);
-		food += this.getFoodAtTile(step, x+1, y);
+		// food += this.getFoodAtTile(step, x+1, y);
 		// food += this.getFoodAtTile(step, x+1, y+1);
-		return food;
+		return food * 4;
 	}
 }

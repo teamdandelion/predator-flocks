@@ -9,22 +9,23 @@ var C;
     C.PREDATOR_MAX_FORCE = 0.03;
     C.PREDATOR_SPEED_FACTOR = 1.3;
     C.PREY_STARTING_FOOD = 300;
-    C.PREY_FOOD_PER_STEP = 1.2;
-    C.PREY_ENERGY_FOR_REPRODUCTION = 1000;
+    C.PREY_FOOD_PER_STEP = 0.4;
+    C.PREY_ENERGY_FOR_REPRODUCTION = 500;
     C.PREY_TURNS_TO_REPRODUCE = 1000;
-    C.PREY_AGE_FACTOR = 0.93;
+    C.PREY_AGE_FACTOR = 0.97;
     C.PREDATOR_STARTING_FOOD = 1000;
-    C.PREDATOR_FOOD_PER_STEP = 2.5;
-    C.PREDATOR_ENERGY_FOR_REPRODUCTION = 5000;
-    C.PREDATOR_TURNS_TO_REPRODUCE = 2000;
-    C.PREDATOR_AGE_FACTOR = 0.95;
+    C.PREDATOR_FOOD_PER_STEP = 0.5;
+    C.PREDATOR_ENERGY_FOR_REPRODUCTION = 3000;
+    C.PREDATOR_TURNS_TO_REPRODUCE = 1000;
+    C.PREDATOR_AGE_FACTOR = 0.98;
     C.FOOD_STARTING_LEVEL = 0.3;
     C.FOOD_STEPS_TO_REGEN = 5000;
     C.MAX_BOIDS = 150;
     C.COORDINATES_3D = false;
-    C.WEIGHT_MUTATION_CONSTANT = 0.5;
+    C.WEIGHT_MUTATION_CONSTANT = 0.2;
     C.RADIUS_MUTATION_CONSTANT = 0.5;
     C.COLOR_MUTATION_CONSTANT = 5;
+    C.CONSUMPTION_TIME = 40;
 })(C || (C = {}));
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -185,7 +186,17 @@ var Predator = (function (_super) {
         this.food = C.PREDATOR_STARTING_FOOD;
         this.turnsToReproduce = C.PREDATOR_TURNS_TO_REPRODUCE;
         this.ageFactor = C.PREDATOR_AGE_FACTOR;
+        this.busyEating = 0;
     }
+    Predator.prototype.accelerate = function (world) {
+        if (this.busyEating > 0) {
+            this.busyEating--;
+            this.velocity.mult(0);
+        }
+        else {
+            _super.prototype.accelerate.call(this, world);
+        }
+    };
     Predator.SPEED_FACTOR = C.PREDATOR_SPEED_FACTOR;
     Predator.IS_PREY = false;
     return Predator;
@@ -211,7 +222,7 @@ var FoodBackground = (function () {
         else {
             lastAccessTime = this.xy2LastAccessTime.get(s);
         }
-        var food = step - lastAccessTime / C.FOOD_STEPS_TO_REGEN;
+        var food = (step - lastAccessTime) / C.FOOD_STEPS_TO_REGEN;
         food = Math.min(food, 1);
         this.xy2LastAccessTime.set(s, step);
         this._eatenThisTurn.push([x, y]);
@@ -221,12 +232,8 @@ var FoodBackground = (function () {
         var x = Math.round(position.x);
         var y = Math.round(position.y);
         var food = 0;
-        food += this.getFoodAtTile(step, x, y - 1);
-        food += this.getFoodAtTile(step, x - 1, y);
         food += this.getFoodAtTile(step, x, y);
-        food += this.getFoodAtTile(step, x, y + 1);
-        food += this.getFoodAtTile(step, x + 1, y);
-        return food;
+        return food * 4;
     };
     return FoodBackground;
 })();
@@ -321,18 +328,18 @@ function randomGenetics() {
 }
 function flockingPreyGenetics() {
     var prey = new FlockConfig(1, 1, 1, 10);
-    var predator = new FlockConfig(1, -1, -1, 40);
+    var predator = new FlockConfig(2, -1, -1, 50);
     var closest = new FlockConfig(0, 0, 0, 0);
     return new Genetics(prey, predator, closest, 0, 0, 255);
 }
 function nonFlockingPreyGenetics() {
     var prey = new FlockConfig(1, 0, 0, 10);
-    var predator = new FlockConfig(1, -1, -1, 40);
+    var predator = new FlockConfig(2, -1, -1, 50);
     var closest = new FlockConfig(0, 0, 0, 0);
     return new Genetics(prey, predator, closest, 125, 125, 0);
 }
 function predatorGenetics() {
-    var prey = new FlockConfig(-1, 1, 1, 30);
+    var prey = new FlockConfig(-1, 1, 1, 500);
     var predator = new FlockConfig(1, 1, 1, 30);
     var closest = new FlockConfig(-2, 2, 2, 50);
     return new Genetics(prey, predator, closest, 255, 0, 0);
@@ -500,7 +507,14 @@ var World = (function () {
             var d2 = b2.position.distance(b.position, _this.radius);
             return d1 - d2;
         };
-        return this.neighborDetector.neighbors(b.boidID).filter(isRightType).map(function (id) { return mapToSearch[id]; }).filter(inRange).sort(compareFn).slice(0, NUM_NEIGHBORS_TO_SHOW);
+        var neighborsToCheck;
+        if (b.isPrey) {
+            neighborsToCheck = this.neighborDetector.neighbors(b.boidID).filter(isRightType).map(function (id) { return mapToSearch[id]; }).filter(inRange);
+        }
+        else {
+            neighborsToCheck = boidsFromMap(this.prey);
+        }
+        return neighborsToCheck.sort(compareFn).slice(0, NUM_NEIGHBORS_TO_SHOW);
     };
     World.prototype.removeBoid = function (b) {
         var removeFrom = b.isPrey ? this.prey : this.predators;
@@ -560,6 +574,7 @@ var World = (function () {
                     d.gainFood(y.food);
                     _this.removeBoid(y);
                     eatenThisTurn[y.boidID] = true;
+                    d.busyEating = C.CONSUMPTION_TIME;
                 }
             });
         });
@@ -572,7 +587,7 @@ var World = (function () {
                 _this.reproduceBoid(b);
             }
             else if (b.food < 0) {
-                if (!b.isPrey && nPredators == 1 && nPrey > 0) {
+                if (!b.isPrey && nPredators <= 3 && nPrey > 0) {
                     b.food = 0;
                     b.age = 0;
                 }
@@ -682,14 +697,14 @@ window.onload = function () {
     var renderer = new Renderer2D(400, "#outer");
     world = new World(400, renderer);
     var flockPosition = newVector().randomize(400 * 0.5);
-    for (var i = 0; i < 10; i++) {
+    for (var i = 0; i < 20; i++) {
         world.addPrey(flockingPreyGenetics(), newVector().randomize(20).add(flockPosition), newVector());
     }
     var nonFlockPosition = newVector().randomize(400 * 0.5);
-    for (var i = 0; i < 10; i++) {
+    for (var i = 0; i < 3; i++) {
         world.addPrey(nonFlockingPreyGenetics(), newVector().randomize(20).add(nonFlockPosition), newVector());
     }
-    for (var i = 0; i < 1; i++) {
+    for (var i = 0; i < 3; i++) {
         world.addPredator(predatorGenetics());
     }
     var go = function () {

@@ -7,16 +7,16 @@ window.onload = () => {
 	var renderer = new Renderer2D(400, "#outer");
 	world = new World(400, renderer);
 	var flockPosition = newVector().randomize(400 * 0.5);
-	for (var i=0; i<10; i++) {
+	for (var i=0; i<20; i++) {
 		world.addPrey(flockingPreyGenetics(), newVector().randomize(20).add(flockPosition), newVector());
 	}
 
 	var nonFlockPosition = newVector().randomize(400 * 0.5);
-	for (var i=0; i<10; i++) {
+	for (var i=0; i<3; i++) {
 		world.addPrey(nonFlockingPreyGenetics(), newVector().randomize(20).add(nonFlockPosition), newVector());
 	}
 
-	for (var i=0; i<1; i++) {
+	for (var i=0; i<3; i++) {
 		world.addPredator(predatorGenetics());
 	}
 	var go = () => {

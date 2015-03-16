@@ -15,17 +15,17 @@ module C {
 
 	// Population control variables (most interesting to modify)
 	export var PREY_STARTING_FOOD = 300;
-	export var PREY_FOOD_PER_STEP = 1.2;
-	export var PREY_ENERGY_FOR_REPRODUCTION = 1000;
+	export var PREY_FOOD_PER_STEP = 0.4;
+	export var PREY_ENERGY_FOR_REPRODUCTION = 500;
 	export var PREY_TURNS_TO_REPRODUCE = 1000;
-	export var PREY_AGE_FACTOR = 0.93;
+	export var PREY_AGE_FACTOR = 0.97;
 
 
 	export var PREDATOR_STARTING_FOOD = 1000;
-	export var PREDATOR_FOOD_PER_STEP = 2.5;
-	export var PREDATOR_ENERGY_FOR_REPRODUCTION = 5000;
-	export var PREDATOR_TURNS_TO_REPRODUCE = 2000;
-	export var PREDATOR_AGE_FACTOR = 0.95;
+	export var PREDATOR_FOOD_PER_STEP = 0.5;
+	export var PREDATOR_ENERGY_FOR_REPRODUCTION = 3000;
+	export var PREDATOR_TURNS_TO_REPRODUCE = 1000;
+	export var PREDATOR_AGE_FACTOR = 0.98;
 
 	export var FOOD_STARTING_LEVEL = 0.3;
 	export var FOOD_STEPS_TO_REGEN = 5000;
@@ -35,9 +35,10 @@ module C {
 	export var COORDINATES_3D = false;
 
 
-	export var WEIGHT_MUTATION_CONSTANT = 0.5;
+	export var WEIGHT_MUTATION_CONSTANT = 0.2;
 	export var RADIUS_MUTATION_CONSTANT = 0.5;
 	export var COLOR_MUTATION_CONSTANT = 5;
 
+	export var CONSUMPTION_TIME = 40; // time a predator needs to eat its food
 
 }

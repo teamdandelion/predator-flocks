@@ -110,21 +110,21 @@ function randomGenetics() {
 
 function flockingPreyGenetics() {
 	var prey = new FlockConfig(1, 1, 1, 10);
-	var predator = new FlockConfig(1, -1, -1, 40);
+	var predator = new FlockConfig(2, -1, -1, 50);
 	var closest = new FlockConfig(0, 0, 0, 0);
 	return new Genetics(prey, predator, closest, 0, 0, 255);
 }
 
 function nonFlockingPreyGenetics() {
 	var prey = new FlockConfig(1, 0, 0, 10);
-	var predator = new FlockConfig(1, -1, -1, 40);
+	var predator = new FlockConfig(2, -1, -1, 50);
 	var closest = new FlockConfig(0, 0, 0, 0);
 	return new Genetics(prey, predator, closest, 125, 125, 0);
 }
 
 
 function predatorGenetics() {
-	var prey = new FlockConfig(-1, 1, 1, 30);
+	var prey = new FlockConfig(-1, 1, 1, 500);
 	var predator = new FlockConfig(1, 1, 1, 30);
 	var closest = new FlockConfig(-2, 2, 2, 50);
 	return new Genetics(prey, predator, closest, 255, 0, 0);
