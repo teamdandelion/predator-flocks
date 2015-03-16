@@ -28,13 +28,20 @@ class _Boid {
 
 	public step(worldRadius: number) {
 		this.position.add(this.velocity).wrap(worldRadius);
+
+		// they have a tendency to flicker on the edge, let's just bump them away if they get there
+		var i = 0;
+		while (this.position.norm() > worldRadius - 0.5 && i < 20) {
+			this.position.add(this.velocity).wrap(worldRadius);
+			i++;
+		}
 	}
 
 	private computeAcceleration(world) {
 		var prey = world.neighbors(this, true);
-		var flockPrey = this.flock(prey, this.genetics.preyFlocking);
+		var flockPrey = this.flock(prey, this.genetics.preyFlocking, world.radius);
 		var predators = world.neighbors(this, false);
-		var flockPredators = this.flock(predators, this.genetics.predatorFlocking);
+		var flockPredators = this.flock(predators, this.genetics.predatorFlocking, world.radius);
 		return flockPrey.add(flockPredators);
 	}
 
@@ -43,13 +50,13 @@ class _Boid {
 		this.velocity.add(a).limit(this.maxSpeed);
 	}
 
-	private seperate(neighbors: _Boid[], seperationRadius: number) {
+	private seperate(neighbors: _Boid[], seperationRadius: number, worldRadius: number) {
 		// This code is based on implementation by Harry Bundage found at http://harry.me/blog/2011/02/17/neat-algorithms-flocking/
 		var seperationVector = newVector();
 		var count = 0;
 		var zeroDetected = false;
 		neighbors.forEach((n) => {
-			var d = this.position.distance(n.position);
+			var d = this.position.distance(n.position, worldRadius);
 			if (0 < d && d < seperationRadius) {
 				var vectorAway = this.position.clone().subtract(n.position);
 				vectorAway.normalize().divide(d);
@@ -68,12 +75,12 @@ class _Boid {
 
 	}
 
-	private align(neighbors: _Boid[]) {
+	private align(neighbors: _Boid[], worldRadius: number) {
 		// This code is based on implementation by Harry Bundage found at http://harry.me/blog/2011/02/17/neat-algorithms-flocking/
 		var averageVelocity = newVector();
 		var count = 0;
 		neighbors.forEach((n) => {
-			var d = this.position.distance(n.position);
+			var d = this.position.distance(n.position, worldRadius);
 			if (0 < d && d < NEIGHBOR_RADIUS) {
 				averageVelocity.add(n.velocity);
 				count++;
@@ -86,12 +93,12 @@ class _Boid {
 		return averageVelocity;
 	}
 
-	private cohere(neighbors: _Boid[]){
+	private cohere(neighbors: _Boid[], worldRadius: number){
 		// This code is based on implementation by Harry Bundage found at http://harry.me/blog/2011/02/17/neat-algorithms-flocking/
 		var averagePosition = newVector();
 		var count = 0;
 		neighbors.forEach((n) => {
-			var d = this.position.distance(n.position);
+			var d = this.position.distance(n.position, worldRadius);
 			if (0 < d && d < NEIGHBOR_RADIUS) {
 				averagePosition.add(n.position);
 				count++;
@@ -125,11 +132,11 @@ class _Boid {
 		return steer;
 	}
 
-	private flock(neighbors: _Boid[], config: FlockConfig): Vector {
+	private flock(neighbors: _Boid[], config: FlockConfig, worldRadius: number): Vector {
 		// This code is based on implementation by Harry Bundage found at http://harry.me/blog/2011/02/17/neat-algorithms-flocking/
-		var s = this.seperate(neighbors, config.seperationRadius).mult(config.seperationWeight);
-		var a = this.align(neighbors).mult(config.alignmentWeight);
-		var c = this.cohere(neighbors).mult(config.cohesionWeight);
+		var s = this.seperate(neighbors, config.seperationRadius, worldRadius).mult(config.seperationWeight);
+		var a = this.align(neighbors, worldRadius).mult(config.alignmentWeight);
+		var c = this.cohere(neighbors, worldRadius).mult(config.cohesionWeight);
 		return s.add(a).add(c);
 	}
 }

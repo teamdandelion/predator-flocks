@@ -1,5 +1,6 @@
 /// <reference path="renderer.ts" />
 /// <reference path="world.ts" />
+/// <reference path="vector.ts" />
 
 window.onload = () => {
 	var renderer = new Renderer2D(400, "svg");
@@ -12,4 +13,5 @@ window.onload = () => {
 		world.step();
 	}
 	setInterval(go, 16);
+	testVector();
 }

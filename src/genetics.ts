@@ -89,6 +89,12 @@ function randomGenetics() {
 	return new Genetics(randomFlocking(), randomFlocking());
 }
 
+function sensibleGenetics() {
+	var prey = new FlockConfig(1, 1, 1, 10);
+	var predator = new FlockConfig(1, 1, 1, 10);
+	return new Genetics(prey, predator);
+}
+
 function randomFlocking() {
 	var sW = Math.random() * MAX_WEIGHT * 2 - MAX_WEIGHT;
 	var aW = Math.random() * MAX_WEIGHT * 2 - MAX_WEIGHT;

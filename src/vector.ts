@@ -13,7 +13,7 @@ interface Vector {
 	mult(scalar: number): Vector;
 	divide(scalar: number): Vector;
 	limit(magnitude: number): Vector;
-	distance(v: Vector): number;
+	distance(v: Vector, radius: number): number;
 	normSq(): number;
 	norm(): number;
 	// normalize: set vector to have a given norm (length). defaults to 1
@@ -64,10 +64,16 @@ class Vector2 implements Vector {
 		return this;
 	}
 
-	distance(v: Vector2): number {
-		var dx = this.x - v.x;
-		var dy = this.y - v.y;
-		return Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2))
+	// 'Locally euclidian' distance on a disk that wraps into a sphere :P
+	distance(v: Vector2, radius: number): number {
+		if (radius == 0) {
+			return Math.sqrt(Math.pow(v.x-this.x, 2) + Math.pow(v.y-this.y, 2));			
+		} else {
+			var targetWrappedWrtThisVector = v.clone().subtract(this).wrap(radius);
+			var dx = targetWrappedWrtThisVector.x;
+			var dy = targetWrappedWrtThisVector.y;
+			return Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2))
+		}
 	}
 
 	limit(magnitude: number): Vector2 {
@@ -100,11 +106,41 @@ class Vector2 implements Vector {
 
 	wrap(radius: number): Vector2 {
 		var zero = new Vector2();
-		var dist = zero.distance(this);
+		var dist = zero.distance(this, 0);
 		if (dist <= radius) return this; // shortcut out, since we will be adding a zero vector
-		var timesToWrap = Math.floor(dist / radius);
 		var vectorOnEdgeOfCircle = this.clone().limit(radius).mult(-2); // vector on opposite edge of circle
-		this.add(vectorOnEdgeOfCircle.mult(timesToWrap));
-		return this;
+		this.add(vectorOnEdgeOfCircle);
+		return this.wrap(radius);
 	}
 }
+
+// if this were a more serious project i would set up a unit testing framework, 
+// but for now i'll just inline tests here and call them from console
+var assert = (expected, actual, message) => {
+	if (expected != actual) {
+		console.error(message, "Expected ", expected, "but got", actual);
+	}
+}
+
+var assertClose = (expected, actual, message, margin=0.1) => {
+	if (actual < expected - 0.1 || actual > expected + 0.1) {
+		console.error(message, "Expected ", expected, "to be close to", actual);
+	}
+}
+
+var testVector = () => {
+	var v = new Vector2(0, 1.1);
+	assertClose(-.9, v.wrap(1), "1.1 wraps to -.9 on radius 1");
+	var vWrap = new Vector2(0, 2);
+	assert(2, vWrap.wrap(2).y, "2 wraps over 2 to 2");
+	assert(0, vWrap.wrap(1).y, "2 wraps over 1 to 0");
+
+	var v0 = new Vector2();
+	var v1 = new Vector2(0, 1);
+	var v2 = new Vector2(0, -1);
+	assert(0, v1.distance(v2, 1), "wrap 1 to -1");
+}
+
+
+
+
