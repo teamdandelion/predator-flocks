@@ -27,14 +27,13 @@ class _Boid {
 	}
 
 	public step(worldRadius: number) {
+		var distToEdge = worldRadius - this.position.norm();
+		if (distToEdge < 20) {
+			var vectorIn = this.position.clone().mult(-1).normalize(MAX_FORCE * 100 / distToEdge / distToEdge);
+			this.velocity.add(vectorIn);
+		}
 		this.position.add(this.velocity).wrap(worldRadius);
 
-		// they have a tendency to flicker on the edge, let's just bump them away if they get there
-		var i = 0;
-		while (this.position.norm() > worldRadius - 0.5 && i < 20) {
-			this.position.add(this.velocity).wrap(worldRadius);
-			i++;
-		}
 	}
 
 	private computeAcceleration(world) {

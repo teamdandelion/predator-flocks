@@ -66,7 +66,7 @@ class Vector2 implements Vector {
 
 	// 'Locally euclidian' distance on a disk that wraps into a sphere :P
 	distance(v: Vector2, radius: number): number {
-		if (radius == 0) {
+		if (radius == 0 || true) {
 			return Math.sqrt(Math.pow(v.x-this.x, 2) + Math.pow(v.y-this.y, 2));			
 		} else {
 			var targetWrappedWrtThisVector = v.clone().subtract(this).wrap(radius);
