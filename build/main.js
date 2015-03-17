@@ -15,12 +15,12 @@ var C;
     C.PREY_AGE_FACTOR = 0.97;
     C.PREDATOR_STARTING_FOOD = 1000;
     C.PREDATOR_FOOD_PER_STEP = 0.5;
-    C.PREDATOR_ENERGY_FOR_REPRODUCTION = 3000;
+    C.PREDATOR_ENERGY_FOR_REPRODUCTION = 2000;
     C.PREDATOR_TURNS_TO_REPRODUCE = 1000;
     C.PREDATOR_AGE_FACTOR = 0.98;
     C.FOOD_STARTING_LEVEL = 0.3;
     C.FOOD_STEPS_TO_REGEN = 5000;
-    C.MAX_BOIDS = 150;
+    C.MAX_BOIDS = 200;
     C.COORDINATES_3D = false;
     C.WEIGHT_MUTATION_CONSTANT = 0.2;
     C.RADIUS_MUTATION_CONSTANT = 0.5;
@@ -580,11 +580,13 @@ var World = (function () {
         });
         var nPredators = Object.keys(this.predators).length;
         var nPrey = Object.keys(this.prey).length;
+        var nBoids = nPredators + nPrey;
         allBoids = boidsFromMap(this.prey).concat(boidsFromMap(this.predators));
         allBoids.forEach(function (b) {
             b.food -= b.foodEatenPerStep;
-            if (b.food > b.energyRequiredForReproduction && b.timeOfLastReproduction < _this.nSteps + b.turnsToReproduce && (nPrey + nPredators < C.MAX_BOIDS || !b.isPrey)) {
+            if (b.food > b.energyRequiredForReproduction && b.timeOfLastReproduction < _this.nSteps + b.turnsToReproduce && (nBoids < C.MAX_BOIDS || !b.isPrey)) {
                 _this.reproduceBoid(b);
+                nBoids++;
             }
             else if (b.food < 0) {
                 if (!b.isPrey && nPredators <= 3 && nPrey > 0) {

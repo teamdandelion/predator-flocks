@@ -144,13 +144,15 @@ class World {
 		// handle both death (due to starvation) and birth in this cycle... very circle-of-life-y
 		var nPredators = Object.keys(this.predators).length;
 		var nPrey = Object.keys(this.prey).length;
+		var nBoids = nPredators + nPrey;
 		allBoids = boidsFromMap(this.prey).concat(boidsFromMap(this.predators)); 
 		allBoids.forEach((b) => {
 			b.food -= b.foodEatenPerStep;
 			if (b.food > b.energyRequiredForReproduction 
 				&& b.timeOfLastReproduction < this.nSteps + b.turnsToReproduce
-				&& (nPrey + nPredators < C.MAX_BOIDS || !b.isPrey)) {
+				&& (nBoids < C.MAX_BOIDS || !b.isPrey)) {
 				this.reproduceBoid(b);
+				nBoids++;
 			} else if (b.food < 0) {
 				if (!b.isPrey && nPredators <=3 && nPrey > 0) {
 				// if there's just one predator, let's allow it to survive unless there's an extinction event
