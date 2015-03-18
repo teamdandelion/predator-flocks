@@ -7,7 +7,6 @@ class _Boid {
 
 	public position: Vector;
 	public velocity: Vector;
-	private maxSpeed: number;
 	public isPrey: boolean;
 	public genetics: Genetics;
 	public boidID: string;
@@ -17,17 +16,22 @@ class _Boid {
 	public turnsToReproduce: number;
 	public food: number;
 	public maxForce: number;
-	public timeOfLastReproduction = 0;
+	public stepsSinceLastReproduction = 0;
 	public ageFactor: number;
 
 	constructor(initialPosition: Vector, initialVelocity: Vector, genetics: Genetics) {
 		// cute hack to get seperate default for Prey or Predator depending on which constructor was invoked.
-		this.maxSpeed = (<typeof _Boid> this.constructor).SPEED_FACTOR * C.BASE_SPEED; 
 		this.isPrey = (<typeof _Boid> this.constructor).IS_PREY; 
 		this.position = initialPosition.clone();
-		this.velocity = initialVelocity.clone().limit(this.maxSpeed);
+		this.velocity = initialVelocity.clone().limit(this.maxSpeed());
 		this.genetics = genetics;
 		this.boidID = (_Boid.ID_INCREMENTER++).toString();
+	}
+
+	public canReproduce(): boolean {
+		this.stepsSinceLastReproduction++;
+		return this.stepsSinceLastReproduction > this.turnsToReproduce 
+			&& this.food > this.energyRequiredForReproduction;
 	}
 
 	public step(worldRadius: number) {
@@ -40,8 +44,12 @@ class _Boid {
 		this.age++;
 	}
 
+	public maxSpeed() {
+		return (<typeof _Boid> this.constructor).SPEED_FACTOR * C.BASE_SPEED * Math.pow(this.ageFactor, Math.round(this.age/60))
+	}
+
 	public gainFood(f: number) {
-		this.food += f * Math.pow(this.ageFactor, Math.round(this.age/60));
+		this.food += f;
 	}
 
 	private computeAcceleration(world) {
@@ -65,7 +73,7 @@ class _Boid {
 
 	public accelerate(world) {
 		var a = this.computeAcceleration(world)
-		this.velocity.add(a).limit(this.maxSpeed);
+		this.velocity.add(a).limit(this.maxSpeed());
 	}
 
 	private seperate(neighbors: _Boid[], seperationRadius: number, worldRadius: number) {
@@ -138,9 +146,9 @@ class _Boid {
 			desired.normalize();
 			// add damping
 			if (d < 100) {
-				desired.mult(this.maxSpeed * d / 100)
+				desired.mult(this.maxSpeed() * d / 100)
 			} else {
-				desired.mult(this.maxSpeed);
+				desired.mult(this.maxSpeed());
 			}
 			steer = desired.subtract(this.velocity);
 			steer.limit(this.maxForce);
