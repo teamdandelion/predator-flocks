@@ -15,7 +15,7 @@ var C;
     C.PREY_AGE_FACTOR = 0.97;
     C.PREDATOR_STARTING_FOOD = 1200;
     C.PREDATOR_FOOD_PER_STEP = 2;
-    C.PREDATOR_FOOD_PER_PREY = 400;
+    C.PREDATOR_FOOD_PER_PREY = 500;
     C.PREDATOR_KILLS_FOR_REPRODUCTION = 7;
     C.PREDATOR_TURNS_TO_REPRODUCE = 1000;
     C.PREDATOR_AGE_FACTOR = 0.995;
@@ -529,6 +529,9 @@ var World = (function () {
         }
         delete removeFrom[b.boidID];
         this.neighborDetector.remove(b.boidID);
+        if (!b.isPrey) {
+            this.renderer.addCorpseToRender(b);
+        }
     };
     World.prototype.reproduceBoid = function (mom) {
         var potentialParents = this.neighbors(mom, mom.isPrey);
@@ -599,7 +602,6 @@ var World = (function () {
                     b.age = 0;
                 }
                 else {
-                    _this.renderer.addCorpseToRender(b);
                     _this.removeBoid(b);
                 }
             }

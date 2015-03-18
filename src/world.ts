@@ -78,6 +78,10 @@ class World {
 		}
 		delete removeFrom[b.boidID];
 		this.neighborDetector.remove(b.boidID);
+		if (!b.isPrey) {
+			this.renderer.addCorpseToRender(b);
+		}
+
 	}
 
 	private reproduceBoid(mom: _Boid) {
@@ -157,7 +161,6 @@ class World {
 					b.food = 0;
 					b.age = 0;
 				} else {
-					this.renderer.addCorpseToRender(b);
 					this.removeBoid(b);
 				}
 			}
