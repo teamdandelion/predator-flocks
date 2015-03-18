@@ -304,31 +304,25 @@ var FlockConfig = (function () {
     return FlockConfig;
 })();
 var Genetics = (function () {
-    function Genetics(preyFlocking, predatorFlocking, closestFlocking, r, g, b) {
+    function Genetics(preyFlocking, predatorFlocking, closestFlocking, color) {
         this.preyFlocking = preyFlocking;
         this.predatorFlocking = predatorFlocking;
         this.closestFlocking = closestFlocking;
-        this.r = r;
-        this.g = g;
-        this.b = b;
+        this.color = color;
     }
     Genetics.prototype.mutate = function () {
         this.preyFlocking.mutate();
         this.predatorFlocking.mutate();
         this.closestFlocking.mutate();
-        this.r = bound(Math.round(this.r + colorMutation()), 0, 255);
-        this.g = bound(Math.round(this.g + colorMutation()), 0, 255);
-        this.b = bound(Math.round(this.b + colorMutation()), 0, 255);
+        this.color = bound(Math.round(this.color + colorMutation()), 0, 255);
         return this;
     };
     Genetics.prototype.reproduceWith = function (otherParent) {
         var preyFlocking = this.preyFlocking.reproduceWith(otherParent.preyFlocking);
         var predatorFlocking = this.predatorFlocking.reproduceWith(otherParent.predatorFlocking);
         var closestFlocking = this.closestFlocking.reproduceWith(otherParent.closestFlocking);
-        var r = (this.r + otherParent.r) / 2;
-        var g = (this.g + otherParent.g) / 2;
-        var b = (this.b + otherParent.b) / 2;
-        return new Genetics(preyFlocking, predatorFlocking, closestFlocking, r, g, b).mutate();
+        var color = (this.color + otherParent.color) / 2;
+        return new Genetics(preyFlocking, predatorFlocking, closestFlocking, color).mutate();
     };
     return Genetics;
 })();
@@ -336,25 +330,25 @@ function randInt256() {
     return Math.floor(Math.random() * 256);
 }
 function randomGenetics() {
-    return new Genetics(randomFlocking(), randomFlocking(), randomFlocking(), randInt256(), randInt256(), randInt256());
+    return new Genetics(randomFlocking(), randomFlocking(), randomFlocking(), randInt256());
 }
 function flockingPreyGenetics() {
     var prey = new FlockConfig(1, 1, 1, 10);
     var predator = new FlockConfig(2, -1, -1, 50);
     var closest = new FlockConfig(0, 0, 0, 0);
-    return new Genetics(prey, predator, closest, 0, 0, 255);
+    return new Genetics(prey, predator, closest, 240);
 }
 function nonFlockingPreyGenetics() {
     var prey = new FlockConfig(1, 0, 0, 10);
     var predator = new FlockConfig(2, -1, -1, 50);
     var closest = new FlockConfig(0, 0, 0, 0);
-    return new Genetics(prey, predator, closest, 125, 125, 0);
+    return new Genetics(prey, predator, closest, 180);
 }
 function predatorGenetics() {
     var prey = new FlockConfig(-3, 1, 1, 500);
     var predator = new FlockConfig(1, 1, 1, 30);
     var closest = new FlockConfig(-6, 2, 2, 50);
-    return new Genetics(prey, predator, closest, 255, 0, 0);
+    return new Genetics(prey, predator, closest, 0);
 }
 function randomFlocking() {
     var sW = Math.random() * MAX_WEIGHT * 2 - MAX_WEIGHT;
@@ -524,7 +518,7 @@ var World = (function () {
             neighborsToCheck = this.neighborDetector.neighbors(b.boidID).filter(isRightType).map(function (id) { return mapToSearch[id]; }).filter(inRange);
         }
         else {
-            neighborsToCheck = boidsFromMap(this.prey);
+            neighborsToCheck = boidsFromMap(mapToSearch);
         }
         return neighborsToCheck.sort(compareFn).slice(0, NUM_NEIGHBORS_TO_SHOW);
     };
@@ -776,7 +770,7 @@ var Renderer2D = (function () {
         var _this = this;
         var selection = isPrey ? this.prey : this.predators;
         var colorF = function (b) {
-            return "rgb(" + b.genetics.r + "," + b.genetics.g + "," + b.genetics.b + ")";
+            return "hsl(" + b.genetics.color + ",100%, 50%)";
         };
         var update = selection.selectAll("circle").data(boids, function (b) { return b.boidID; });
         update.enter().append("circle").attr("r", function (d) { return d.radius; }).attr("fill", colorF);

@@ -66,26 +66,20 @@ class Genetics {
 	public preyFlocking: FlockConfig; // how to flock in response to presence of prey
 	public predatorFlocking: FlockConfig; // how to flock in response to presence of predators
 	public closestFlocking: FlockConfig; // predator only: how to flock in response to single closest prey
-	public r: number;
-	public g: number;
-	public b: number;
+	public color: number;
 
-	constructor(preyFlocking, predatorFlocking, closestFlocking, r, g, b) {
+	constructor(preyFlocking, predatorFlocking, closestFlocking, color) {
 		this.preyFlocking = preyFlocking;
 		this.predatorFlocking = predatorFlocking;
 		this.closestFlocking = closestFlocking;
-		this.r = r;
-		this.g = g;
-		this.b = b;
+		this.color = color;
 	}
 
 	public mutate(): Genetics {
 		this.preyFlocking.mutate();
 		this.predatorFlocking.mutate();
 		this.closestFlocking.mutate();
-		this.r = bound(Math.round(this.r + colorMutation()), 0, 255)
-		this.g = bound(Math.round(this.g + colorMutation()), 0, 255)
-		this.b = bound(Math.round(this.b + colorMutation()), 0, 255)
+		this.color = bound(Math.round(this.color + colorMutation()), 0, 255)
 		return this;
 	}
 
@@ -93,10 +87,8 @@ class Genetics {
 		var preyFlocking = this.preyFlocking.reproduceWith(otherParent.preyFlocking);
 		var predatorFlocking = this.predatorFlocking.reproduceWith(otherParent.predatorFlocking);
 		var closestFlocking = this.closestFlocking.reproduceWith(otherParent.closestFlocking);
-		var r = (this.r + otherParent.r) / 2;
-		var g = (this.g + otherParent.g) / 2;
-		var b = (this.b + otherParent.b) / 2;
-		return new Genetics(preyFlocking, predatorFlocking, closestFlocking, r, g, b).mutate();
+		var color = (this.color + otherParent.color) / 2;
+		return new Genetics(preyFlocking, predatorFlocking, closestFlocking, color).mutate();
 	}
 }
 
@@ -105,21 +97,21 @@ function randInt256() {
 }
 
 function randomGenetics() {
-	return new Genetics(randomFlocking(), randomFlocking(), randomFlocking(), randInt256(), randInt256(), randInt256());
+	return new Genetics(randomFlocking(), randomFlocking(), randomFlocking(), randInt256());
 }
 
 function flockingPreyGenetics() {
 	var prey = new FlockConfig(1, 1, 1, 10);
 	var predator = new FlockConfig(2, -1, -1, 50);
 	var closest = new FlockConfig(0, 0, 0, 0);
-	return new Genetics(prey, predator, closest, 0, 0, 255);
+	return new Genetics(prey, predator, closest, 240);
 }
 
 function nonFlockingPreyGenetics() {
 	var prey = new FlockConfig(1, 0, 0, 10);
 	var predator = new FlockConfig(2, -1, -1, 50);
 	var closest = new FlockConfig(0, 0, 0, 0);
-	return new Genetics(prey, predator, closest, 125, 125, 0);
+	return new Genetics(prey, predator, closest, 180);
 }
 
 
@@ -127,7 +119,7 @@ function predatorGenetics() {
 	var prey = new FlockConfig(-3, 1, 1, 500);
 	var predator = new FlockConfig(1, 1, 1, 30);
 	var closest = new FlockConfig(-6, 2, 2, 50);
-	return new Genetics(prey, predator, closest, 255, 0, 0);
+	return new Genetics(prey, predator, closest, 0);
 }
 
 function randomFlocking() {

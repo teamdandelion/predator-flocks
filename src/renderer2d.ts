@@ -30,7 +30,7 @@ class Renderer2D {
 		var selection = isPrey ? this.prey : this.predators;
 
 		var colorF = (b: _Boid) => {
-			return "rgb(" + b.genetics.r + "," + b.genetics.g + ","+ b.genetics.b + ")";
+			return "hsl(" + b.genetics.color + ",100%, 50%)";
 		}
 
 		var update = selection.selectAll("circle")

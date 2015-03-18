@@ -64,7 +64,7 @@ class World {
 									.map((id: string) => mapToSearch[id])
 									.filter(inRange);
 		} else {
-			neighborsToCheck = boidsFromMap(this.prey)
+			neighborsToCheck = boidsFromMap(mapToSearch)
 		}
 		return neighborsToCheck
 					.sort(compareFn)
