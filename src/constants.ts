@@ -21,11 +21,13 @@ module C {
 	export var PREY_AGE_FACTOR = 0.985;
 
 
-	export var PREDATOR_STARTING_FOOD = 1000;
+	export var PREDATOR_STARTING_FOOD = 1200;
 	export var PREDATOR_FOOD_PER_STEP = 1;
-	export var PREDATOR_ENERGY_FOR_REPRODUCTION = 1000;
+	export var PREDATOR_FOOD_PER_PREY = 400;
+	export var PREDATOR_KILLS_FOR_REPRODUCTION = 14;
 	export var PREDATOR_TURNS_TO_REPRODUCE = 1000;
 	export var PREDATOR_AGE_FACTOR = 0.995;
+	export var PREDATOR_ENERGY_FOR_REPRODUCTION = PREDATOR_FOOD_PER_PREY * PREDATOR_KILLS_FOR_REPRODUCTION;
 
 	export var FOOD_STARTING_LEVEL = 0.3;
 	export var FOOD_STEPS_TO_REGEN = 8000;
@@ -40,5 +42,6 @@ module C {
 	export var COLOR_MUTATION_CONSTANT = 5;
 
 	export var CONSUMPTION_TIME = 30; // time a predator needs to eat its food
+	export var MIN_NUM_PREDATORS = 0; // predators will not die if few are left alive
 
 }

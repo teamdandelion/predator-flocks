@@ -13,11 +13,13 @@ var C;
     C.PREY_ENERGY_FOR_REPRODUCTION = 300;
     C.PREY_TURNS_TO_REPRODUCE = 500;
     C.PREY_AGE_FACTOR = 0.985;
-    C.PREDATOR_STARTING_FOOD = 1000;
+    C.PREDATOR_STARTING_FOOD = 1200;
     C.PREDATOR_FOOD_PER_STEP = 1;
-    C.PREDATOR_ENERGY_FOR_REPRODUCTION = 1000;
+    C.PREDATOR_FOOD_PER_PREY = 400;
+    C.PREDATOR_KILLS_FOR_REPRODUCTION = 14;
     C.PREDATOR_TURNS_TO_REPRODUCE = 1000;
     C.PREDATOR_AGE_FACTOR = 0.995;
+    C.PREDATOR_ENERGY_FOR_REPRODUCTION = C.PREDATOR_FOOD_PER_PREY * C.PREDATOR_KILLS_FOR_REPRODUCTION;
     C.FOOD_STARTING_LEVEL = 0.3;
     C.FOOD_STEPS_TO_REGEN = 8000;
     C.MAX_BOIDS = 100;
@@ -26,6 +28,7 @@ var C;
     C.RADIUS_MUTATION_CONSTANT = 0.5;
     C.COLOR_MUTATION_CONSTANT = 5;
     C.CONSUMPTION_TIME = 30;
+    C.MIN_NUM_PREDATORS = 0;
 })(C || (C = {}));
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -61,6 +64,9 @@ var _Boid = (function () {
     };
     _Boid.prototype.gainFood = function (f) {
         this.food += f;
+        if (this.food > this.energyRequiredForReproduction * 1.5) {
+            this.food = this.energyRequiredForReproduction;
+        }
     };
     _Boid.prototype.computeAcceleration = function (world) {
         var prey = world.neighbors(this, true);
@@ -576,7 +582,7 @@ var World = (function () {
                     return;
                 }
                 if (d.position.distance(y.position, 0) <= RANGE_TO_CONSUME) {
-                    d.gainFood(y.food);
+                    d.gainFood(C.PREDATOR_FOOD_PER_PREY);
                     _this.removeBoid(y);
                     eatenThisTurn[y.boidID] = true;
                     d.busyEating = C.CONSUMPTION_TIME;
@@ -594,7 +600,7 @@ var World = (function () {
                 nBoids++;
             }
             else if (b.food < 0) {
-                if (!b.isPrey && nPredators <= 3 && nPrey > 0) {
+                if (!b.isPrey && nPredators <= C.MIN_NUM_PREDATORS && nPrey > 0) {
                     b.food = 0;
                     b.age = 0;
                 }
@@ -705,15 +711,17 @@ var world;
 window.onload = function () {
     var renderer = new Renderer2D(400, "#outer");
     world = new World(400, renderer);
-    var flockPosition = newVector().randomize(400 * 0.5);
-    for (var i = 0; i < 100; i++) {
-        world.addPrey(flockingPreyGenetics(), newVector().randomize(20).add(flockPosition), newVector());
+    for (var i = 0; i < 5; i++) {
+        var flockPosition = newVector().randomize(400 * 0.5);
+        for (var j = 0; j < 10; j++) {
+            world.addPrey(flockingPreyGenetics(), newVector().randomize(Math.random() * 30).add(flockPosition), newVector());
+        }
     }
     var nonFlockPosition = newVector().randomize(400 * 0.5);
     for (var i = 0; i < 10; i++) {
-        world.addPrey(nonFlockingPreyGenetics(), newVector().randomize(20).add(nonFlockPosition), newVector());
+        world.addPrey(nonFlockingPreyGenetics(), newVector().randomize(400 * Math.random()), newVector());
     }
-    for (var i = 0; i < 10; i++) {
+    for (var i = 0; i < 7; i++) {
         world.addPredator(predatorGenetics());
     }
     var go = function () {

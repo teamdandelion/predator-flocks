@@ -131,7 +131,7 @@ class World {
 					// the predator that iterates first gets to win ties over food
 				}
 				if (d.position.distance(y.position, 0) <= RANGE_TO_CONSUME) {
-					d.gainFood(y.food);
+					d.gainFood(C.PREDATOR_FOOD_PER_PREY);
 					this.removeBoid(y);
 					eatenThisTurn[y.boidID] = true;
 					d.busyEating = C.CONSUMPTION_TIME;
@@ -152,7 +152,7 @@ class World {
 				this.reproduceBoid(b);
 				nBoids++;
 			} else if (b.food < 0) {
-				if (!b.isPrey && nPredators <=3 && nPrey > 0) {
+				if (!b.isPrey && nPredators <= C.MIN_NUM_PREDATORS && nPrey > 0) {
 				// if there's just MIN_PREDATORS predator, let's allow it to survive unless there's an extinction event
 					b.food = 0;
 					b.age = 0;

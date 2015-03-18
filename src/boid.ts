@@ -50,6 +50,10 @@ class _Boid {
 
 	public gainFood(f: number) {
 		this.food += f;
+		if (this.food > this.energyRequiredForReproduction * 1.5) {
+			// prevent boids from building up massive energy stores
+			this.food = this.energyRequiredForReproduction; 
+		}
 	}
 
 	private computeAcceleration(world) {
