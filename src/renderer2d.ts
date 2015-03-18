@@ -47,7 +47,7 @@ class Renderer2D implements Renderer {
 		return this;
 	}
 
-	public renderBackground(f: FoodBackground) {
+	public renderBackground(f: FoodBackground, boidsDied: _Boid[]) {
 		var ctx = this.canvas.getContext('2d');
 		ctx.beginPath();
 		ctx.arc(this.radius, this.radius, this.radius, 0, 2 * Math.PI, false);
@@ -66,6 +66,14 @@ class Renderer2D implements Renderer {
 			ctx.fill();
 			ctx.closePath();
 
+		boidsDied.forEach((b) => {
+
+			ctx.fillStyle = "rgb(0,0,0)"
+			ctx.beginPath();
+			ctx.arc(b.position.x + this.radius, b.position.y + this.radius, b.radius, 0, 2*Math.PI, false);
+			ctx.fill();
+			ctx.closePath();
+		});
 			// // add a bigger but lower opacity circle for antialiasing
 			// ctx.fillStyle = "rgba(255,255,255, 0.5)"
 			// ctx.beginPath();

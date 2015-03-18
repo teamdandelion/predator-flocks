@@ -7,6 +7,7 @@ class World {
 	private foodBackground: FoodBackground;
 	private neighborDetector: GridNeighborDetector;
 	public nSteps = 0;
+	private boidsRemovedThisStep: _Boid[] = [];
 
 	constructor(public radius: number, private renderer: Renderer) {
 		var standardFlocking = {seperationWeight: 1, alignmentWeight: 1, cohesionWeight: 1};
@@ -78,6 +79,7 @@ class World {
 		}
 		delete removeFrom[b.boidID];
 		this.neighborDetector.remove(b.boidID);
+		this.boidsRemovedThisStep.push(b);
 	}
 
 	private reproduceBoid(mom: _Boid) {
@@ -101,11 +103,11 @@ class World {
 		this.addBoid(child);
 		child.food = mom.energyRequiredForReproduction / 4;
 		mom.food -= mom.energyRequiredForReproduction / 2;
-		mom.timeOfLastReproduction = this.nSteps;
-		child.timeOfLastReproduction = this.nSteps;
+		mom.stepsSinceLastReproduction = 0;
 	}
 
 	public step() {
+		this.boidsRemovedThisStep = [];
 		var allBoids = boidsFromMap(this.prey).concat(boidsFromMap(this.predators));
 		allBoids.forEach((b) => {
 			this.neighborDetector.add(b.boidID, b.position.x, b.position.y);
@@ -148,14 +150,13 @@ class World {
 		allBoids = boidsFromMap(this.prey).concat(boidsFromMap(this.predators)); 
 		allBoids.forEach((b) => {
 			b.food -= b.foodEatenPerStep;
-			if (b.food > b.energyRequiredForReproduction 
-				&& b.timeOfLastReproduction < this.nSteps + b.turnsToReproduce
-				&& (nBoids < C.MAX_BOIDS || !b.isPrey)) {
+			if (b.canReproduce() && (nBoids < C.MAX_BOIDS || !b.isPrey)) {
+				// if we have hit max boids, we still allow predators to reproduce
 				this.reproduceBoid(b);
 				nBoids++;
 			} else if (b.food < 0) {
 				if (!b.isPrey && nPredators <=3 && nPrey > 0) {
-				// if there's just one predator, let's allow it to survive unless there's an extinction event
+				// if there's just MIN_PREDATORS predator, let's allow it to survive unless there's an extinction event
 					b.food = 0;
 					b.age = 0;
 				} else {
@@ -170,7 +171,7 @@ class World {
 	public render() {
 		this.renderer.renderBoids(boidsFromMap(this.prey), true);
 		this.renderer.renderBoids(boidsFromMap(this.predators), false);
-		this.renderer.renderBackground(this.foodBackground);
+		this.renderer.renderBackground(this.foodBackground, this.boidsRemovedThisStep);
 	}
 }
 

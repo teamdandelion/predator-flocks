@@ -7,25 +7,25 @@ var C;
     C.PREY_SPEED_FACTOR = 1;
     C.PREDATOR_RADIUS = 5;
     C.PREDATOR_MAX_FORCE = 0.03;
-    C.PREDATOR_SPEED_FACTOR = 1.3;
+    C.PREDATOR_SPEED_FACTOR = 1.35;
     C.PREY_STARTING_FOOD = 300;
-    C.PREY_FOOD_PER_STEP = 0.4;
-    C.PREY_ENERGY_FOR_REPRODUCTION = 500;
-    C.PREY_TURNS_TO_REPRODUCE = 1000;
-    C.PREY_AGE_FACTOR = 0.97;
+    C.PREY_FOOD_PER_STEP = 0.53;
+    C.PREY_ENERGY_FOR_REPRODUCTION = 300;
+    C.PREY_TURNS_TO_REPRODUCE = 500;
+    C.PREY_AGE_FACTOR = 0.985;
     C.PREDATOR_STARTING_FOOD = 1000;
-    C.PREDATOR_FOOD_PER_STEP = 0.5;
-    C.PREDATOR_ENERGY_FOR_REPRODUCTION = 2000;
+    C.PREDATOR_FOOD_PER_STEP = 1;
+    C.PREDATOR_ENERGY_FOR_REPRODUCTION = 1000;
     C.PREDATOR_TURNS_TO_REPRODUCE = 1000;
-    C.PREDATOR_AGE_FACTOR = 0.98;
+    C.PREDATOR_AGE_FACTOR = 0.995;
     C.FOOD_STARTING_LEVEL = 0.3;
-    C.FOOD_STEPS_TO_REGEN = 5000;
-    C.MAX_BOIDS = 200;
+    C.FOOD_STEPS_TO_REGEN = 8000;
+    C.MAX_BOIDS = 100;
     C.COORDINATES_3D = false;
     C.WEIGHT_MUTATION_CONSTANT = 0.2;
     C.RADIUS_MUTATION_CONSTANT = 0.5;
     C.COLOR_MUTATION_CONSTANT = 5;
-    C.CONSUMPTION_TIME = 40;
+    C.CONSUMPTION_TIME = 30;
 })(C || (C = {}));
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -36,14 +36,17 @@ var __extends = this.__extends || function (d, b) {
 var _Boid = (function () {
     function _Boid(initialPosition, initialVelocity, genetics) {
         this.age = 0;
-        this.timeOfLastReproduction = 0;
-        this.maxSpeed = this.constructor.SPEED_FACTOR * C.BASE_SPEED;
+        this.stepsSinceLastReproduction = 0;
         this.isPrey = this.constructor.IS_PREY;
         this.position = initialPosition.clone();
-        this.velocity = initialVelocity.clone().limit(this.maxSpeed);
+        this.velocity = initialVelocity.clone().limit(this.maxSpeed());
         this.genetics = genetics;
         this.boidID = (_Boid.ID_INCREMENTER++).toString();
     }
+    _Boid.prototype.canReproduce = function () {
+        this.stepsSinceLastReproduction++;
+        return this.stepsSinceLastReproduction > this.turnsToReproduce && this.food > this.energyRequiredForReproduction;
+    };
     _Boid.prototype.step = function (worldRadius) {
         var distToEdge = worldRadius - this.position.norm();
         if (distToEdge < 20) {
@@ -53,8 +56,11 @@ var _Boid = (function () {
         this.position.add(this.velocity).wrap(worldRadius);
         this.age++;
     };
+    _Boid.prototype.maxSpeed = function () {
+        return this.constructor.SPEED_FACTOR * C.BASE_SPEED * Math.pow(this.ageFactor, Math.round(this.age / 60));
+    };
     _Boid.prototype.gainFood = function (f) {
-        this.food += f * Math.pow(this.ageFactor, Math.round(this.age / 60));
+        this.food += f;
     };
     _Boid.prototype.computeAcceleration = function (world) {
         var prey = world.neighbors(this, true);
@@ -70,7 +76,7 @@ var _Boid = (function () {
     };
     _Boid.prototype.accelerate = function (world) {
         var a = this.computeAcceleration(world);
-        this.velocity.add(a).limit(this.maxSpeed);
+        this.velocity.add(a).limit(this.maxSpeed());
     };
     _Boid.prototype.seperate = function (neighbors, seperationRadius, worldRadius) {
         var _this = this;
@@ -137,10 +143,10 @@ var _Boid = (function () {
         if (d > 0) {
             desired.normalize();
             if (d < 100) {
-                desired.mult(this.maxSpeed * d / 100);
+                desired.mult(this.maxSpeed() * d / 100);
             }
             else {
-                desired.mult(this.maxSpeed);
+                desired.mult(this.maxSpeed());
             }
             steer = desired.subtract(this.velocity);
             steer.limit(this.maxForce);
@@ -339,9 +345,9 @@ function nonFlockingPreyGenetics() {
     return new Genetics(prey, predator, closest, 125, 125, 0);
 }
 function predatorGenetics() {
-    var prey = new FlockConfig(-1, 1, 1, 500);
+    var prey = new FlockConfig(-3, 1, 1, 500);
     var predator = new FlockConfig(1, 1, 1, 30);
-    var closest = new FlockConfig(-2, 2, 2, 50);
+    var closest = new FlockConfig(-6, 2, 2, 50);
     return new Genetics(prey, predator, closest, 255, 0, 0);
 }
 function randomFlocking() {
@@ -465,6 +471,7 @@ var World = (function () {
         this.radius = radius;
         this.renderer = renderer;
         this.nSteps = 0;
+        this.boidsRemovedThisStep = [];
         var standardFlocking = { seperationWeight: 1, alignmentWeight: 1, cohesionWeight: 1 };
         var standardGenetics = { preyFlocking: standardFlocking, predatorFlocking: standardFlocking, targetFlocking: standardFlocking };
         this.predators = {};
@@ -523,6 +530,7 @@ var World = (function () {
         }
         delete removeFrom[b.boidID];
         this.neighborDetector.remove(b.boidID);
+        this.boidsRemovedThisStep.push(b);
     };
     World.prototype.reproduceBoid = function (mom) {
         var potentialParents = this.neighbors(mom, mom.isPrey);
@@ -546,11 +554,11 @@ var World = (function () {
         this.addBoid(child);
         child.food = mom.energyRequiredForReproduction / 4;
         mom.food -= mom.energyRequiredForReproduction / 2;
-        mom.timeOfLastReproduction = this.nSteps;
-        child.timeOfLastReproduction = this.nSteps;
+        mom.stepsSinceLastReproduction = 0;
     };
     World.prototype.step = function () {
         var _this = this;
+        this.boidsRemovedThisStep = [];
         var allBoids = boidsFromMap(this.prey).concat(boidsFromMap(this.predators));
         allBoids.forEach(function (b) {
             _this.neighborDetector.add(b.boidID, b.position.x, b.position.y);
@@ -584,7 +592,7 @@ var World = (function () {
         allBoids = boidsFromMap(this.prey).concat(boidsFromMap(this.predators));
         allBoids.forEach(function (b) {
             b.food -= b.foodEatenPerStep;
-            if (b.food > b.energyRequiredForReproduction && b.timeOfLastReproduction < _this.nSteps + b.turnsToReproduce && (nBoids < C.MAX_BOIDS || !b.isPrey)) {
+            if (b.canReproduce() && (nBoids < C.MAX_BOIDS || !b.isPrey)) {
                 _this.reproduceBoid(b);
                 nBoids++;
             }
@@ -603,7 +611,7 @@ var World = (function () {
     World.prototype.render = function () {
         this.renderer.renderBoids(boidsFromMap(this.prey), true);
         this.renderer.renderBoids(boidsFromMap(this.predators), false);
-        this.renderer.renderBackground(this.foodBackground);
+        this.renderer.renderBackground(this.foodBackground, this.boidsRemovedThisStep);
     };
     return World;
 })();
@@ -699,14 +707,14 @@ window.onload = function () {
     var renderer = new Renderer2D(400, "#outer");
     world = new World(400, renderer);
     var flockPosition = newVector().randomize(400 * 0.5);
-    for (var i = 0; i < 20; i++) {
+    for (var i = 0; i < 100; i++) {
         world.addPrey(flockingPreyGenetics(), newVector().randomize(20).add(flockPosition), newVector());
     }
     var nonFlockPosition = newVector().randomize(400 * 0.5);
-    for (var i = 0; i < 3; i++) {
+    for (var i = 0; i < 10; i++) {
         world.addPrey(nonFlockingPreyGenetics(), newVector().randomize(20).add(nonFlockPosition), newVector());
     }
-    for (var i = 0; i < 3; i++) {
+    for (var i = 0; i < 10; i++) {
         world.addPredator(predatorGenetics());
     }
     var go = function () {
@@ -768,7 +776,7 @@ var Renderer2D = (function () {
         update.exit().remove();
         return this;
     };
-    Renderer2D.prototype.renderBackground = function (f) {
+    Renderer2D.prototype.renderBackground = function (f, boidsDied) {
         var _this = this;
         var ctx = this.canvas.getContext('2d');
         ctx.beginPath();
@@ -786,6 +794,13 @@ var Renderer2D = (function () {
             ctx.arc(xy[0] + _this.radius, xy[1] + _this.radius, 1, 0, 2 * Math.PI, false);
             ctx.fill();
             ctx.closePath();
+            boidsDied.forEach(function (b) {
+                ctx.fillStyle = "rgb(0,0,0)";
+                ctx.beginPath();
+                ctx.arc(b.position.x + _this.radius, b.position.y + _this.radius, b.radius, 0, 2 * Math.PI, false);
+                ctx.fill();
+                ctx.closePath();
+            });
         });
         return this;
     };
