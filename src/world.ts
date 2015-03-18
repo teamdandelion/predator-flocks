@@ -7,7 +7,6 @@ class World {
 	private foodBackground: FoodBackground;
 	private neighborDetector: GridNeighborDetector;
 	public nSteps = 0;
-	private boidsRemovedThisStep: _Boid[] = [];
 
 	constructor(public radius: number, private renderer: Renderer2D) {
 		var standardFlocking = {seperationWeight: 1, alignmentWeight: 1, cohesionWeight: 1};
@@ -79,7 +78,6 @@ class World {
 		}
 		delete removeFrom[b.boidID];
 		this.neighborDetector.remove(b.boidID);
-		this.boidsRemovedThisStep.push(b);
 	}
 
 	private reproduceBoid(mom: _Boid) {
@@ -107,7 +105,6 @@ class World {
 	}
 
 	public step() {
-		this.boidsRemovedThisStep = [];
 		var allBoids = boidsFromMap(this.prey).concat(boidsFromMap(this.predators));
 		allBoids.forEach((b) => {
 			this.neighborDetector.add(b.boidID, b.position.x, b.position.y);
@@ -160,6 +157,7 @@ class World {
 					b.food = 0;
 					b.age = 0;
 				} else {
+					this.renderer.addCorpseToRender(b);
 					this.removeBoid(b);
 				}
 			}
@@ -171,7 +169,8 @@ class World {
 	public render() {
 		this.renderer.renderBoids(boidsFromMap(this.prey), true);
 		this.renderer.renderBoids(boidsFromMap(this.predators), false);
-		this.renderer.renderBackground(this.foodBackground, this.boidsRemovedThisStep);
+		this.renderer.renderBackground(this.foodBackground);
+		this.renderer.renderCorpses();
 	}
 }
 

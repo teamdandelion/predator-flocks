@@ -471,7 +471,6 @@ var World = (function () {
         this.radius = radius;
         this.renderer = renderer;
         this.nSteps = 0;
-        this.boidsRemovedThisStep = [];
         var standardFlocking = { seperationWeight: 1, alignmentWeight: 1, cohesionWeight: 1 };
         var standardGenetics = { preyFlocking: standardFlocking, predatorFlocking: standardFlocking, targetFlocking: standardFlocking };
         this.predators = {};
@@ -530,7 +529,6 @@ var World = (function () {
         }
         delete removeFrom[b.boidID];
         this.neighborDetector.remove(b.boidID);
-        this.boidsRemovedThisStep.push(b);
     };
     World.prototype.reproduceBoid = function (mom) {
         var potentialParents = this.neighbors(mom, mom.isPrey);
@@ -558,7 +556,6 @@ var World = (function () {
     };
     World.prototype.step = function () {
         var _this = this;
-        this.boidsRemovedThisStep = [];
         var allBoids = boidsFromMap(this.prey).concat(boidsFromMap(this.predators));
         allBoids.forEach(function (b) {
             _this.neighborDetector.add(b.boidID, b.position.x, b.position.y);
@@ -602,6 +599,7 @@ var World = (function () {
                     b.age = 0;
                 }
                 else {
+                    _this.renderer.addCorpseToRender(b);
                     _this.removeBoid(b);
                 }
             }
@@ -611,7 +609,8 @@ var World = (function () {
     World.prototype.render = function () {
         this.renderer.renderBoids(boidsFromMap(this.prey), true);
         this.renderer.renderBoids(boidsFromMap(this.predators), false);
-        this.renderer.renderBackground(this.foodBackground, this.boidsRemovedThisStep);
+        this.renderer.renderBackground(this.foodBackground);
+        this.renderer.renderCorpses();
     };
     return World;
 })();
@@ -750,6 +749,7 @@ var Renderer2D = (function () {
     function Renderer2D(radius, divID) {
         this.radius = radius;
         this.foodCounter = 0;
+        this.corpsesToRender = [];
         this.div = d3.select(divID);
         this.canvas = this.div.append("canvas").attr("width", this.radius * 2).attr("height", this.radius * 2).node();
         this.svg = this.div.append("svg").attr("width", this.radius * 2).attr("height", this.radius * 2);
@@ -774,9 +774,23 @@ var Renderer2D = (function () {
         update.enter().append("circle").attr("r", function (d) { return d.radius; }).attr("fill", colorF);
         update.attr("cx", function (d) { return d.position.x + _this.radius; }).attr("cy", function (d) { return d.position.y + _this.radius; });
         update.exit().remove();
-        return this;
     };
-    Renderer2D.prototype.renderBackground = function (f, boidsDied) {
+    Renderer2D.prototype.addCorpseToRender = function (boid) {
+        this.corpsesToRender.push(boid);
+    };
+    Renderer2D.prototype.renderCorpses = function () {
+        var _this = this;
+        var ctx = this.canvas.getContext('2d');
+        this.corpsesToRender.forEach(function (b) {
+            ctx.fillStyle = "rgb(0,0,0)";
+            ctx.beginPath();
+            ctx.arc(b.position.x + _this.radius, b.position.y + _this.radius, b.radius, 0, 2 * Math.PI, false);
+            ctx.fill();
+            ctx.closePath();
+        });
+        this.corpsesToRender = [];
+    };
+    Renderer2D.prototype.renderBackground = function (f) {
         var _this = this;
         var ctx = this.canvas.getContext('2d');
         ctx.beginPath();
@@ -794,15 +808,7 @@ var Renderer2D = (function () {
             ctx.arc(xy[0] + _this.radius, xy[1] + _this.radius, 1, 0, 2 * Math.PI, false);
             ctx.fill();
             ctx.closePath();
-            boidsDied.forEach(function (b) {
-                ctx.fillStyle = "rgb(0,0,0)";
-                ctx.beginPath();
-                ctx.arc(b.position.x + _this.radius, b.position.y + _this.radius, b.radius, 0, 2 * Math.PI, false);
-                ctx.fill();
-                ctx.closePath();
-            });
         });
-        return this;
     };
     return Renderer2D;
 })();

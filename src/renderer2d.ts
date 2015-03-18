@@ -44,10 +44,27 @@ class Renderer2D {
 
 		update.exit().remove();
 
-		return this;
 	}
 
-	public renderBackground(f: FoodBackground, boidsDied: _Boid[]) {
+	private corpsesToRender: _Boid[] = [];
+	// Wrapper method, since I prefer not to have other classes directly touching renderer2D's data structs
+	public addCorpseToRender(boid: _Boid) {
+		this.corpsesToRender.push(boid);
+	}
+
+	public renderCorpses() {
+		var ctx = this.canvas.getContext('2d');
+		this.corpsesToRender.forEach((b) => {
+			ctx.fillStyle = "rgb(0,0,0)"
+			ctx.beginPath();
+			ctx.arc(b.position.x + this.radius, b.position.y + this.radius, b.radius, 0, 2*Math.PI, false);
+			ctx.fill();
+			ctx.closePath();
+		});
+		this.corpsesToRender = [];
+	}
+
+	public renderBackground(f: FoodBackground) {
 		var ctx = this.canvas.getContext('2d');
 		ctx.beginPath();
 		ctx.arc(this.radius, this.radius, this.radius, 0, 2 * Math.PI, false);
@@ -65,23 +82,6 @@ class Renderer2D {
 			ctx.arc(xy[0] + this.radius, xy[1] + this.radius, 1, 0, 2*Math.PI, false);
 			ctx.fill();
 			ctx.closePath();
-
-		boidsDied.forEach((b) => {
-
-			ctx.fillStyle = "rgb(0,0,0)"
-			ctx.beginPath();
-			ctx.arc(b.position.x + this.radius, b.position.y + this.radius, b.radius, 0, 2*Math.PI, false);
-			ctx.fill();
-			ctx.closePath();
 		});
-			// // add a bigger but lower opacity circle for antialiasing
-			// ctx.fillStyle = "rgba(255,255,255, 0.5)"
-			// ctx.beginPath();
-			// ctx.arc(xy[0] + this.radius, xy[1] + this.radius, 2, 0, 2*Math.PI, false);
-			// ctx.fill();
-			// ctx.closePath();
-
-		});
-		return this;
 	}
 }
