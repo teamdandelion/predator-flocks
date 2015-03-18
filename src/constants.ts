@@ -39,7 +39,7 @@ module C {
 
 	export var WEIGHT_MUTATION_CONSTANT = 0.2;
 	export var RADIUS_MUTATION_CONSTANT = 0.5;
-	export var COLOR_MUTATION_CONSTANT = 5;
+	export var COLOR_MUTATION_CONSTANT = 10;
 
 	export var CONSUMPTION_TIME = 30; // time a predator needs to eat its food
 	export var MIN_NUM_PREDATORS = 0; // predators will not die if few are left alive
