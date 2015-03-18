@@ -124,9 +124,9 @@ function nonFlockingPreyGenetics() {
 
 
 function predatorGenetics() {
-	var prey = new FlockConfig(-1, 1, 1, 500);
+	var prey = new FlockConfig(-3, 1, 1, 500);
 	var predator = new FlockConfig(1, 1, 1, 30);
-	var closest = new FlockConfig(-2, 2, 2, 50);
+	var closest = new FlockConfig(-6, 2, 2, 50);
 	return new Genetics(prey, predator, closest, 255, 0, 0);
 }
 
