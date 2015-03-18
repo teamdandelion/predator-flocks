@@ -9,7 +9,7 @@ class World {
 	public nSteps = 0;
 	private boidsRemovedThisStep: _Boid[] = [];
 
-	constructor(public radius: number, private renderer: Renderer) {
+	constructor(public radius: number, private renderer: Renderer2D) {
 		var standardFlocking = {seperationWeight: 1, alignmentWeight: 1, cohesionWeight: 1};
 		var standardGenetics = {preyFlocking: standardFlocking, predatorFlocking: standardFlocking, targetFlocking: standardFlocking};
 		this.predators = {};

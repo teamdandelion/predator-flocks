@@ -2,7 +2,7 @@
 var PREY_SIZE = 1;
 var PREDATOR_SIZE = 2;
 
-class Renderer2D implements Renderer {
+class Renderer2D {
 	private div: D3.Selection;
 	private canvas: any; // it's a canvas node
 	private svg: D3.Selection;

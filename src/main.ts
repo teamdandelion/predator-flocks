@@ -1,4 +1,3 @@
-/// <reference path="renderer.ts" />
 /// <reference path="world.ts" />
 /// <reference path="vector.ts" />
 
