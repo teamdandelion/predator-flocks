@@ -11,20 +11,20 @@ module C {
 
 	export var PREDATOR_RADIUS = 5;
 	export var PREDATOR_MAX_FORCE = 0.03;
-	export var PREDATOR_SPEED_FACTOR = 1.35;
+	export var PREDATOR_SPEED_FACTOR = 1.15;
 
 	// Population control variables (most interesting to modify)
 	export var PREY_STARTING_FOOD = 300;
 	export var PREY_FOOD_PER_STEP = 0.53;
 	export var PREY_ENERGY_FOR_REPRODUCTION = 300;
 	export var PREY_TURNS_TO_REPRODUCE = 500;
-	export var PREY_AGE_FACTOR = 0.985;
+	export var PREY_AGE_FACTOR = 0.97;
 
 
 	export var PREDATOR_STARTING_FOOD = 1200;
-	export var PREDATOR_FOOD_PER_STEP = 1;
+	export var PREDATOR_FOOD_PER_STEP = 2;
 	export var PREDATOR_FOOD_PER_PREY = 400;
-	export var PREDATOR_KILLS_FOR_REPRODUCTION = 14;
+	export var PREDATOR_KILLS_FOR_REPRODUCTION = 7;
 	export var PREDATOR_TURNS_TO_REPRODUCE = 1000;
 	export var PREDATOR_AGE_FACTOR = 0.995;
 	export var PREDATOR_ENERGY_FOR_REPRODUCTION = PREDATOR_FOOD_PER_PREY * PREDATOR_KILLS_FOR_REPRODUCTION;

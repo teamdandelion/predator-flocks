@@ -17,7 +17,7 @@ window.onload = () => {
 		world.addPrey(nonFlockingPreyGenetics(), newVector().randomize(400 * Math.random()), newVector());
 	}
 
-	for (var i=0; i<7; i++) {
+	for (var i=0; i<5; i++) {
 		world.addPredator(predatorGenetics());
 	}
 	var go = () => {

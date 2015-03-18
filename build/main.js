@@ -7,16 +7,16 @@ var C;
     C.PREY_SPEED_FACTOR = 1;
     C.PREDATOR_RADIUS = 5;
     C.PREDATOR_MAX_FORCE = 0.03;
-    C.PREDATOR_SPEED_FACTOR = 1.35;
+    C.PREDATOR_SPEED_FACTOR = 1.15;
     C.PREY_STARTING_FOOD = 300;
     C.PREY_FOOD_PER_STEP = 0.53;
     C.PREY_ENERGY_FOR_REPRODUCTION = 300;
     C.PREY_TURNS_TO_REPRODUCE = 500;
-    C.PREY_AGE_FACTOR = 0.985;
+    C.PREY_AGE_FACTOR = 0.97;
     C.PREDATOR_STARTING_FOOD = 1200;
-    C.PREDATOR_FOOD_PER_STEP = 1;
+    C.PREDATOR_FOOD_PER_STEP = 2;
     C.PREDATOR_FOOD_PER_PREY = 400;
-    C.PREDATOR_KILLS_FOR_REPRODUCTION = 14;
+    C.PREDATOR_KILLS_FOR_REPRODUCTION = 7;
     C.PREDATOR_TURNS_TO_REPRODUCE = 1000;
     C.PREDATOR_AGE_FACTOR = 0.995;
     C.PREDATOR_ENERGY_FOR_REPRODUCTION = C.PREDATOR_FOOD_PER_PREY * C.PREDATOR_KILLS_FOR_REPRODUCTION;
@@ -715,7 +715,7 @@ window.onload = function () {
     for (var i = 0; i < 10; i++) {
         world.addPrey(nonFlockingPreyGenetics(), newVector().randomize(400 * Math.random()), newVector());
     }
-    for (var i = 0; i < 7; i++) {
+    for (var i = 0; i < 5; i++) {
         world.addPredator(predatorGenetics());
     }
     var go = function () {
