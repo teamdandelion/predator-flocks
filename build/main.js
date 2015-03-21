@@ -50,14 +50,27 @@ var _Boid = (function () {
         this.stepsSinceLastReproduction++;
         return this.stepsSinceLastReproduction > this.turnsToReproduce && this.food > this.energyRequiredForReproduction;
     };
-    _Boid.prototype.step = function (worldRadius) {
-        var distToEdge = worldRadius - this.position.norm();
-        if (distToEdge < 20) {
-            var vectorIn = this.position.clone().mult(-1).normalize(this.maxForce * 100 / distToEdge / distToEdge);
+    _Boid.prototype.step = function (worldX, worldY) {
+        if (this.position.x < 0 || this.position.x > worldX || this.position.y < 0 || this.position.y > worldY) {
+            debugger;
+        }
+        var distx = Math.min(this.position.x, worldX - this.position.x);
+        if (distx < 20) {
+            var dir = this.position.x < worldX / 2 ? 1 : -1;
+            var vectorIn = new Vector2(dir, 0).normalize(this.maxForce * 100 / distx / distx);
             this.velocity.add(vectorIn);
         }
-        this.position.add(this.velocity).wrap(worldRadius);
+        var disty = Math.min(this.position.y, worldY - this.position.y);
+        if (disty < 20) {
+            var dir = this.position.y < worldY / 2 ? 1 : -1;
+            var vectorIn = new Vector2(0, dir).normalize(this.maxForce * 100 / disty / disty);
+            this.velocity.add(vectorIn);
+        }
+        this.position.add(this.velocity);
         this.age++;
+        if (this.position.x < 0 || this.position.x > worldX || this.position.y < 0 || this.position.y > worldY) {
+            debugger;
+        }
     };
     _Boid.prototype.maxSpeed = function () {
         return this.constructor.SPEED_FACTOR * C.BASE_SPEED * Math.pow(this.ageFactor, Math.round(this.age / 60));
@@ -70,12 +83,12 @@ var _Boid = (function () {
     };
     _Boid.prototype.computeAcceleration = function (world) {
         var prey = world.neighbors(this, true);
-        var flockPrey = this.flock(prey, this.genetics.preyFlocking, world.radius);
+        var flockPrey = this.flock(prey, this.genetics.preyFlocking);
         var predators = world.neighbors(this, false);
-        var flockPredators = this.flock(predators, this.genetics.predatorFlocking, world.radius);
+        var flockPredators = this.flock(predators, this.genetics.predatorFlocking);
         if (!this.isPrey) {
             var closestPrey = prey.slice(0, 1);
-            var flockClosest = this.flock(closestPrey, this.genetics.closestFlocking, world.radius);
+            var flockClosest = this.flock(closestPrey, this.genetics.closestFlocking);
             flockPrey.add(flockClosest);
         }
         return flockPrey.add(flockPredators);
@@ -84,13 +97,13 @@ var _Boid = (function () {
         var a = this.computeAcceleration(world);
         this.velocity.add(a).limit(this.maxSpeed());
     };
-    _Boid.prototype.seperate = function (neighbors, seperationRadius, worldRadius) {
+    _Boid.prototype.seperate = function (neighbors, seperationRadius) {
         var _this = this;
         var seperationVector = newVector();
         var count = 0;
         var zeroDetected = false;
         neighbors.forEach(function (n) {
-            var d = _this.position.distance(n.position, worldRadius);
+            var d = _this.position.distance(n.position);
             if (0 < d && d < seperationRadius) {
                 var vectorAway = _this.position.clone().subtract(n.position);
                 vectorAway.normalize().divide(d);
@@ -107,12 +120,12 @@ var _Boid = (function () {
         }
         return seperationVector;
     };
-    _Boid.prototype.align = function (neighbors, worldRadius) {
+    _Boid.prototype.align = function (neighbors) {
         var _this = this;
         var averageVelocity = newVector();
         var count = 0;
         neighbors.forEach(function (n) {
-            var d = _this.position.distance(n.position, worldRadius);
+            var d = _this.position.distance(n.position);
             if (0 < d && d < C.NEIGHBOR_RADIUS) {
                 averageVelocity.add(n.velocity);
                 count++;
@@ -124,12 +137,12 @@ var _Boid = (function () {
         averageVelocity.limit(this.maxForce);
         return averageVelocity;
     };
-    _Boid.prototype.cohere = function (neighbors, worldRadius) {
+    _Boid.prototype.cohere = function (neighbors) {
         var _this = this;
         var averagePosition = newVector();
         var count = 0;
         neighbors.forEach(function (n) {
-            var d = _this.position.distance(n.position, worldRadius);
+            var d = _this.position.distance(n.position);
             if (0 < d && d < C.NEIGHBOR_RADIUS) {
                 averagePosition.add(n.position);
                 count++;
@@ -162,10 +175,10 @@ var _Boid = (function () {
         }
         return steer;
     };
-    _Boid.prototype.flock = function (neighbors, config, worldRadius) {
-        var s = this.seperate(neighbors, config.seperationRadius, worldRadius).mult(config.seperationWeight);
-        var a = this.align(neighbors, worldRadius).mult(config.alignmentWeight);
-        var c = this.cohere(neighbors, worldRadius).mult(config.cohesionWeight);
+    _Boid.prototype.flock = function (neighbors, config) {
+        var s = this.seperate(neighbors, config.seperationRadius).mult(config.seperationWeight);
+        var a = this.align(neighbors).mult(config.alignmentWeight);
+        var c = this.cohere(neighbors).mult(config.cohesionWeight);
         return s.add(a).add(c);
     };
     _Boid.ID_INCREMENTER = 0;
@@ -214,8 +227,7 @@ var Predator = (function (_super) {
     return Predator;
 })(_Boid);
 var FoodBackground = (function () {
-    function FoodBackground(radius) {
-        this.radius = radius;
+    function FoodBackground() {
         this.stepsToRegen = 5000;
         this.xy2LastAccessTime = d3.map();
         this._eatenThisTurn = [];
@@ -398,11 +410,6 @@ var GridNeighborDetector = (function () {
         return neighbors;
     };
     GridNeighborDetector.prototype.add = function (id, x, y) {
-        x += this.width / 2;
-        y += this.height / 2;
-        return this._add(id, x, y);
-    };
-    GridNeighborDetector.prototype._add = function (id, x, y) {
         if (x < 0 || x > this.width || y < 0 || y > this.height) {
             console.error("Bad input id=", id, "x=", x, "y=", y, " to GND.add");
         }
@@ -441,8 +448,8 @@ var testGND = (function () {
         var gnd = new GridNeighborDetector(400, 400, 50);
         var id1 = x1 + "," + y1;
         var id2 = x2 + "," + y2;
-        gnd._add(id1, x1, y1);
-        gnd._add(id2, x2, y2);
+        gnd.add(id1, x1, y1);
+        gnd.add(id2, x2, y2);
         if (gnd.neighbors(id1).length != 2) {
             console.error("expected", id1, "to be neighbor of", id2);
         }
@@ -451,8 +458,8 @@ var testGND = (function () {
         var gnd = new GridNeighborDetector(400, 400, 50);
         var id1 = x1 + "," + y1;
         var id2 = x2 + "," + y2;
-        gnd._add(id1, x1, y1);
-        gnd._add(id2, x2, y2);
+        gnd.add(id1, x1, y1);
+        gnd.add(id2, x2, y2);
         if (gnd.neighbors(id1).length != 1) {
             console.error("expected", id1, "not to be neighbor of", id2);
         }
@@ -467,25 +474,31 @@ var testGND = (function () {
 var NUM_NEIGHBORS_TO_SHOW = 7;
 var RANGE_TO_CONSUME = 5;
 var World = (function () {
-    function World(radius, renderer) {
-        this.radius = radius;
+    function World(width, height, renderer) {
+        this.width = width;
+        this.height = height;
         this.renderer = renderer;
         this.nSteps = 0;
         var standardFlocking = { seperationWeight: 1, alignmentWeight: 1, cohesionWeight: 1 };
         var standardGenetics = { preyFlocking: standardFlocking, predatorFlocking: standardFlocking, targetFlocking: standardFlocking };
         this.predators = {};
         this.prey = {};
-        this.neighborDetector = new GridNeighborDetector(this.radius * 2, this.radius * 2, C.NEIGHBOR_RADIUS);
-        this.foodBackground = new FoodBackground(this.radius);
+        this.neighborDetector = new GridNeighborDetector(this.width, this.height, C.NEIGHBOR_RADIUS);
+        this.foodBackground = new FoodBackground();
     }
+    World.prototype.randomSpot = function () {
+        var x = Math.random() * this.width;
+        var y = Math.random() * this.height;
+        return new Vector2(x, y);
+    };
     World.prototype.addPrey = function (g, position, velocity) {
-        position = position ? position : newVector().randomize(this.radius * Math.random());
+        position = position ? position : this.randomSpot();
         velocity = velocity ? velocity : newVector().randomize(Prey.SPEED_FACTOR * C.BASE_SPEED);
         var p = new Prey(position, velocity, g);
         this.addBoid(p);
     };
     World.prototype.addPredator = function (g) {
-        var position = newVector().randomize(this.radius * Math.random());
+        var position = this.randomSpot();
         var velocity = newVector().randomize(Prey.SPEED_FACTOR * C.BASE_SPEED);
         var p = new Predator(position, velocity, g);
         this.addBoid(p);
@@ -504,13 +517,12 @@ var World = (function () {
         allBoids.forEach(function (b) { return _this.removeBoid(b); });
     };
     World.prototype.neighbors = function (b, prey) {
-        var _this = this;
         var mapToSearch = prey ? this.prey : this.predators;
         var isRightType = function (id) { return !!mapToSearch[id]; };
-        var inRange = function (x) { return b.position.distance(x.position, 0) <= C.NEIGHBOR_RADIUS; };
+        var inRange = function (x) { return b.position.distance(x.position) <= C.NEIGHBOR_RADIUS; };
         var compareFn = function (b1, b2) {
-            var d1 = b1.position.distance(b.position, _this.radius);
-            var d2 = b2.position.distance(b.position, _this.radius);
+            var d1 = b1.position.distance(b.position);
+            var d2 = b2.position.distance(b.position);
             return d1 - d2;
         };
         var neighborsToCheck;
@@ -542,7 +554,7 @@ var World = (function () {
         else {
             var minDistance = Infinity;
             potentialParents.forEach(function (p) {
-                var dist = p.position.distance(mom.position, 0);
+                var dist = p.position.distance(mom.position);
                 if (p != mom && dist < minDistance) {
                     minDistance = dist;
                     dad = p;
@@ -567,7 +579,7 @@ var World = (function () {
             b.accelerate(_this);
         });
         allBoids.forEach(function (b) {
-            b.step(_this.radius);
+            b.step(_this.width, _this.height);
         });
         boidsFromMap(this.prey).forEach(function (p) {
             p.gainFood(_this.foodBackground.getFood(p.position, _this.nSteps));
@@ -578,7 +590,7 @@ var World = (function () {
                 if (eatenThisTurn[y.boidID]) {
                     return;
                 }
-                if (d.position.distance(y.position, 0) <= RANGE_TO_CONSUME) {
+                if (d.position.distance(y.position) <= RANGE_TO_CONSUME) {
                     d.gainFood(C.PREDATOR_FOOD_PER_PREY);
                     _this.removeBoid(y);
                     eatenThisTurn[y.boidID] = true;
@@ -656,16 +668,8 @@ var Vector2 = (function () {
         this.y /= scalar;
         return this;
     };
-    Vector2.prototype.distance = function (v, radius) {
-        if (radius == 0 || true) {
-            return Math.sqrt(Math.pow(v.x - this.x, 2) + Math.pow(v.y - this.y, 2));
-        }
-        else {
-            var targetWrappedWrtThisVector = v.clone().subtract(this).wrap(radius);
-            var dx = targetWrappedWrtThisVector.x;
-            var dy = targetWrappedWrtThisVector.y;
-            return Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
-        }
+    Vector2.prototype.distance = function (v) {
+        return Math.sqrt(Math.pow(v.x - this.x, 2) + Math.pow(v.y - this.y, 2));
     };
     Vector2.prototype.limit = function (magnitude) {
         var n = this.norm();
@@ -692,30 +696,23 @@ var Vector2 = (function () {
         this.normalize(norm);
         return this;
     };
-    Vector2.prototype.wrap = function (radius) {
-        var zero = new Vector2();
-        var dist = zero.distance(this, 0);
-        if (dist <= radius)
-            return this;
-        var vectorOnEdgeOfCircle = this.clone().limit(radius).mult(-2);
-        this.add(vectorOnEdgeOfCircle);
-        return this.wrap(radius);
-    };
     return Vector2;
 })();
 var world;
 window.onload = function () {
-    var renderer = new Renderer2D(400, "#outer");
-    world = new World(400, renderer);
+    var w = window.innerWidth;
+    var h = window.innerHeight;
+    var renderer = new Renderer2D(w, h, "#outer");
+    world = new World(w, h, renderer);
     for (var i = 0; i < 5; i++) {
         var flockPosition = newVector().randomize(400 * 0.5);
         for (var j = 0; j < 10; j++) {
-            world.addPrey(flockingPreyGenetics(), newVector().randomize(Math.random() * 30).add(flockPosition), newVector());
+            world.addPrey(flockingPreyGenetics(), world.randomSpot(), newVector());
         }
     }
     var nonFlockPosition = newVector().randomize(400 * 0.5);
     for (var i = 0; i < 10; i++) {
-        world.addPrey(nonFlockingPreyGenetics(), newVector().randomize(400 * Math.random()), newVector());
+        world.addPrey(nonFlockingPreyGenetics(), world.randomSpot(), newVector());
     }
     for (var i = 0; i < 5; i++) {
         world.addPredator(predatorGenetics());
@@ -750,18 +747,19 @@ var Quadtree = (function () {
 var PREY_SIZE = 1;
 var PREDATOR_SIZE = 2;
 var Renderer2D = (function () {
-    function Renderer2D(radius, divID) {
-        this.radius = radius;
+    function Renderer2D(width, height, divID) {
+        this.width = width;
+        this.height = height;
         this.foodCounter = 0;
         this.corpsesToRender = [];
         this.div = d3.select(divID);
-        this.canvas = this.div.append("canvas").attr("width", this.radius * 2).attr("height", this.radius * 2).node();
-        this.svg = this.div.append("svg").attr("width", this.radius * 2).attr("height", this.radius * 2);
+        this.canvas = this.div.append("canvas").attr("width", this.width).attr("height", this.height).node();
+        this.svg = this.div.append("svg").attr("width", this.width).attr("height", this.height);
         this.prey = this.svg.append("g").classed("prey", true);
         this.predators = this.svg.append("g").classed("predators", true);
         var ctx = this.canvas.getContext('2d');
         ctx.beginPath();
-        ctx.arc(this.radius, this.radius, this.radius, 0, 2 * Math.PI, false);
+        ctx.rect(0, 0, this.width, this.height);
         ctx.fillStyle = "rgb(255,255,255)";
         ctx.fill();
         ctx.fillStyle = "rgba(0, 255, 0," + C.FOOD_STARTING_LEVEL + ")";
@@ -769,36 +767,33 @@ var Renderer2D = (function () {
         ctx.closePath();
     }
     Renderer2D.prototype.renderBoids = function (boids, isPrey) {
-        var _this = this;
         var selection = isPrey ? this.prey : this.predators;
         var colorF = function (b) {
             return "hsl(" + b.genetics.color + ",100%, 50%)";
         };
         var update = selection.selectAll("circle").data(boids, function (b) { return b.boidID; });
         update.enter().append("circle").attr("r", function (d) { return d.radius; }).attr("fill", colorF);
-        update.attr("cx", function (d) { return d.position.x + _this.radius; }).attr("cy", function (d) { return d.position.y + _this.radius; });
+        update.attr("cx", function (d) { return d.position.x; }).attr("cy", function (d) { return d.position.y; });
         update.exit().remove();
     };
     Renderer2D.prototype.addCorpseToRender = function (boid) {
         this.corpsesToRender.push(boid);
     };
     Renderer2D.prototype.renderCorpses = function () {
-        var _this = this;
         var ctx = this.canvas.getContext('2d');
         this.corpsesToRender.forEach(function (b) {
             ctx.fillStyle = "rgb(0,0,0)";
             ctx.beginPath();
-            ctx.arc(b.position.x + _this.radius, b.position.y + _this.radius, b.radius, 0, 2 * Math.PI, false);
+            ctx.arc(b.position.x, b.position.y, b.radius, 0, 2 * Math.PI, false);
             ctx.fill();
             ctx.closePath();
         });
         this.corpsesToRender = [];
     };
     Renderer2D.prototype.renderBackground = function (f) {
-        var _this = this;
         var ctx = this.canvas.getContext('2d');
         ctx.beginPath();
-        ctx.arc(this.radius, this.radius, this.radius, 0, 2 * Math.PI, false);
+        ctx.rect(0, 0, this.width, this.height);
         if (this.foodCounter++ === Math.round(C.FOOD_STEPS_TO_REGEN / 100)) {
             ctx.fillStyle = "rgba(0,255,0, 0.01)";
             ctx.fill();
@@ -809,7 +804,7 @@ var Renderer2D = (function () {
         eatenThisTurn.forEach(function (xy) {
             ctx.fillStyle = "rgb(255,255,255)";
             ctx.beginPath();
-            ctx.arc(xy[0] + _this.radius, xy[1] + _this.radius, 1, 0, 2 * Math.PI, false);
+            ctx.arc(xy[0], xy[1], 1, 0, 2 * Math.PI, false);
             ctx.fill();
             ctx.closePath();
         });

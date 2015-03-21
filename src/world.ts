@@ -8,25 +8,30 @@ class World {
 	private neighborDetector: GridNeighborDetector;
 	public nSteps = 0;
 
-	constructor(public radius: number, private renderer: Renderer2D) {
+	constructor(public width: number, public height: number, private renderer: Renderer2D) {
 		var standardFlocking = {seperationWeight: 1, alignmentWeight: 1, cohesionWeight: 1};
 		var standardGenetics = {preyFlocking: standardFlocking, predatorFlocking: standardFlocking, targetFlocking: standardFlocking};
 		this.predators = {};
 		this.prey = {};
-		this.neighborDetector = new GridNeighborDetector(this.radius*2, this.radius*2, C.NEIGHBOR_RADIUS);
-		this.foodBackground = new FoodBackground(this.radius)
+		this.neighborDetector = new GridNeighborDetector(this.width, this.height, C.NEIGHBOR_RADIUS);
+		this.foodBackground = new FoodBackground()
 	}
 
+	public randomSpot(): Vector {
+		var x = Math.random() * this.width;
+		var y = Math.random() * this.height;
+		return new Vector2(x, y);
+	}
 
 	public addPrey(g: Genetics, position?: Vector, velocity?: Vector) {
-		position = position ? position : newVector().randomize(this.radius * Math.random()); // random within radius
+		position = position ? position : this.randomSpot(); // random within radius
 		velocity = velocity ? velocity : newVector().randomize(Prey.SPEED_FACTOR * C.BASE_SPEED); 
 		var p = new Prey(position, velocity, g);
 		this.addBoid(p);
 	}
 
 	public addPredator(g: Genetics) {
-		var position = newVector().randomize(this.radius * Math.random()); // random within radius
+		var position = this.randomSpot(); // random within radius
 		var velocity = newVector().randomize(Prey.SPEED_FACTOR * C.BASE_SPEED); 
 		var p = new Predator(position, velocity, g);
 		this.addBoid(p);
@@ -49,11 +54,11 @@ class World {
 	public neighbors(b: _Boid, prey: boolean): _Boid[] {
 		var mapToSearch = prey ? this.prey : this.predators;
 		var isRightType = (id: string) => !!mapToSearch[id];
-		var inRange = (x: _Boid) => b.position.distance(x.position, 0) <= C.NEIGHBOR_RADIUS;
+		var inRange = (x: _Boid) => b.position.distance(x.position) <= C.NEIGHBOR_RADIUS;
 		
 		var compareFn = (b1: _Boid, b2: _Boid) => {
-			var d1 = b1.position.distance(b.position, this.radius);
-			var d2 = b2.position.distance(b.position, this.radius);
+			var d1 = b1.position.distance(b.position);
+			var d2 = b2.position.distance(b.position);
 			return d1 - d2;
 		}
 
@@ -92,7 +97,7 @@ class World {
 		} else {
 			var minDistance = Infinity;
 			potentialParents.forEach((p: _Boid) => {
-				var dist = p.position.distance(mom.position, 0);
+				var dist = p.position.distance(mom.position);
 				if (p != mom && dist < minDistance) {
 					minDistance = dist;
 					dad = p;
@@ -118,7 +123,7 @@ class World {
 		});
 
 		allBoids.forEach((b) => {
-			b.step(this.radius);
+			b.step(this.width, this.height);
 		});
 
 		boidsFromMap(this.prey).forEach((p: Prey) => {
@@ -134,7 +139,7 @@ class World {
 					// nb this is the one time in which the iteration order matters, since 
 					// the predator that iterates first gets to win ties over food
 				}
-				if (d.position.distance(y.position, 0) <= RANGE_TO_CONSUME) {
+				if (d.position.distance(y.position) <= RANGE_TO_CONSUME) {
 					d.gainFood(C.PREDATOR_FOOD_PER_PREY);
 					this.removeBoid(y);
 					eatenThisTurn[y.boidID] = true;

@@ -9,16 +9,17 @@ class Renderer2D {
 	private prey: D3.Selection;
 	private predators: D3.Selection;
 	private foodCounter = 0;
-	constructor(private radius: number, divID: string) {
+	constructor(private width: number, private height: number, divID: string) {
 		this.div = d3.select(divID);
-		this.canvas = this.div.append("canvas").attr("width", this.radius*2).attr("height", this.radius*2).node();
-		this.svg = this.div.append("svg").attr("width", this.radius*2).attr("height", this.radius*2);
+		this.canvas = this.div.append("canvas").attr("width", this.width).attr("height", this.height).node();
+		this.svg = this.div.append("svg").attr("width", this.width).attr("height", this.height);
 		this.prey = this.svg.append("g").classed("prey",true);
 		this.predators = this.svg.append("g").classed("predators", true);
 
 		var ctx = this.canvas.getContext('2d');
 		ctx.beginPath();
-		ctx.arc(this.radius, this.radius, this.radius, 0, 2 * Math.PI, false);
+		ctx.rect(0, 0, this.width, this.height);
+		// ctx.arc(this.radius, this.radius, this.radius, 0, 2 * Math.PI, false);
 		ctx.fillStyle = "rgb(255,255,255)"
 		ctx.fill();
 		ctx.fillStyle = "rgba(0, 255, 0," +  C.FOOD_STARTING_LEVEL + ")";
@@ -39,8 +40,8 @@ class Renderer2D {
 			.append("circle")
 			.attr("r", (d) => d.radius)
 			.attr("fill", colorF);
-		update.attr("cx", (d) => d.position.x + this.radius)
-			  .attr("cy", (d) => d.position.y + this.radius);
+		update.attr("cx", (d) => d.position.x)
+			  .attr("cy", (d) => d.position.y);
 
 		update.exit().remove();
 
@@ -57,7 +58,7 @@ class Renderer2D {
 		this.corpsesToRender.forEach((b) => {
 			ctx.fillStyle = "rgb(0,0,0)"
 			ctx.beginPath();
-			ctx.arc(b.position.x + this.radius, b.position.y + this.radius, b.radius, 0, 2*Math.PI, false);
+			ctx.arc(b.position.x, b.position.y, b.radius, 0, 2*Math.PI, false);
 			ctx.fill();
 			ctx.closePath();
 		});
@@ -67,7 +68,8 @@ class Renderer2D {
 	public renderBackground(f: FoodBackground) {
 		var ctx = this.canvas.getContext('2d');
 		ctx.beginPath();
-		ctx.arc(this.radius, this.radius, this.radius, 0, 2 * Math.PI, false);
+		ctx.rect(0, 0, this.width, this.height);
+		// ctx.arc(this.radius, this.radius, this.radius, 0, 2 * Math.PI, false);
 		if (this.foodCounter++ === Math.round(C.FOOD_STEPS_TO_REGEN / 100)) {
 			ctx.fillStyle = "rgba(0,255,0, 0.01)"
 			ctx.fill();
@@ -79,7 +81,7 @@ class Renderer2D {
 		eatenThisTurn.forEach((xy: number[]) => {
 			ctx.fillStyle = "rgb(255,255,255)"
 			ctx.beginPath();
-			ctx.arc(xy[0] + this.radius, xy[1] + this.radius, 1, 0, 2*Math.PI, false);
+			ctx.arc(xy[0], xy[1], 1, 0, 2*Math.PI, false);
 			ctx.fill();
 			ctx.closePath();
 		});

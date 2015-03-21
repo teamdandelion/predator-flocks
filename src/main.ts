@@ -3,18 +3,20 @@
 
 var world: World;
 window.onload = () => {
-	var renderer = new Renderer2D(400, "#outer");
-	world = new World(400, renderer);
+	var w = window.innerWidth;
+	var h = window.innerHeight;
+	var renderer = new Renderer2D(w, h, "#outer");
+	world = new World(w, h, renderer);
 	for (var i=0; i<5; i++) {
 		var flockPosition = newVector().randomize(400 * 0.5);
 		for (var j=0; j<10; j++) {
-			world.addPrey(flockingPreyGenetics(), newVector().randomize(Math.random() * 30).add(flockPosition), newVector());
+			world.addPrey(flockingPreyGenetics(), world.randomSpot(), newVector());
 		}
 	}
 
 	var nonFlockPosition = newVector().randomize(400 * 0.5);
 	for (var i=0; i<10; i++) {
-		world.addPrey(nonFlockingPreyGenetics(), newVector().randomize(400 * Math.random()), newVector());
+		world.addPrey(nonFlockingPreyGenetics(), world.randomSpot(), newVector());
 	}
 
 	for (var i=0; i<5; i++) {

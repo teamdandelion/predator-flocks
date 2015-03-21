@@ -13,14 +13,14 @@ interface Vector {
 	mult(scalar: number): Vector;
 	divide(scalar: number): Vector;
 	limit(magnitude: number): Vector;
-	distance(v: Vector, radius: number): number;
+	distance(v: Vector): number;
 	normSq(): number;
 	norm(): number;
 	// normalize: set vector to have a given norm (length). defaults to 1
 	normalize(norm?: number): Vector;
 	// set vector to random values, with given norm (defualts to 1)
 	randomize(norm?: number): Vector; 
-	wrap(radius: number): Vector;
+	// wrap(radius: number): Vector;
 }
 
 function newVector(): Vector {
@@ -64,16 +64,8 @@ class Vector2 implements Vector {
 		return this;
 	}
 
-	// 'Locally euclidian' distance on a disk that wraps into a sphere :P
-	distance(v: Vector2, radius: number): number {
-		if (radius == 0 || true) {
-			return Math.sqrt(Math.pow(v.x-this.x, 2) + Math.pow(v.y-this.y, 2));			
-		} else {
-			var targetWrappedWrtThisVector = v.clone().subtract(this).wrap(radius);
-			var dx = targetWrappedWrtThisVector.x;
-			var dy = targetWrappedWrtThisVector.y;
-			return Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2))
-		}
+	distance(v: Vector2): number {
+		return Math.sqrt(Math.pow(v.x-this.x, 2) + Math.pow(v.y-this.y, 2));			
 	}
 
 	limit(magnitude: number): Vector2 {
@@ -104,14 +96,14 @@ class Vector2 implements Vector {
 		return this;
 	}
 
-	wrap(radius: number): Vector2 {
-		var zero = new Vector2();
-		var dist = zero.distance(this, 0);
-		if (dist <= radius) return this; // shortcut out, since we will be adding a zero vector
-		var vectorOnEdgeOfCircle = this.clone().limit(radius).mult(-2); // vector on opposite edge of circle
-		this.add(vectorOnEdgeOfCircle);
-		return this.wrap(radius);
-	}
+	// wrap(radius: number): Vector2 {
+	// 	var zero = new Vector2();
+	// 	var dist = zero.distance(this, 0);
+	// 	if (dist <= radius) return this; // shortcut out, since we will be adding a zero vector
+	// 	var vectorOnEdgeOfCircle = this.clone().limit(radius).mult(-2); // vector on opposite edge of circle
+	// 	this.add(vectorOnEdgeOfCircle);
+	// 	return this.wrap(radius);
+	// }
 }
 
 

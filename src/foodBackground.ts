@@ -4,7 +4,7 @@ class FoodBackground {
 	private _eatenThisTurn: number[][];
 
 
-	constructor(public radius: number) {
+	constructor() {
 		this.xy2LastAccessTime = d3.map();
 		this._eatenThisTurn = [];
 	}

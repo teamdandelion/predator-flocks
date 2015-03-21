@@ -64,14 +64,6 @@ class GridNeighborDetector {
 		If the id is already present, it will be moved into the new location.
 	*/
 	public add(id: string, x: number, y: number): GridNeighborDetector {
-		// do some coordinate transformation - we set 0,0 to be lower left hand corner, but the rest
-		// of the codebase sets 0,0 to be center of the simulation
-		x += this.width/2;
-		y += this.height/2;
-		return this._add(id, x, y);
-	}
-
-	private _add(id: string, x: number, y: number): GridNeighborDetector {
 		if (x < 0 || x > this.width || y <0 || y > this.height) {
 			console.error("Bad input id=", id, "x=", x, "y=", y, " to GND.add");
 		}
@@ -116,8 +108,8 @@ var testGND = (() => {
 		var id1 = x1 + "," + y1;
 		var id2 = x2 + "," + y2;
 		// hack around the protection on the _add method so we can test without coordinate conversion
-		(<any> gnd)._add(id1, x1, y1);
-		(<any> gnd)._add(id2, x2, y2);
+		gnd.add(id1, x1, y1);
+		gnd.add(id2, x2, y2);
 		if (gnd.neighbors(id1).length != 2) {
 			console.error("expected", id1, "to be neighbor of", id2);
 		}
@@ -127,9 +119,8 @@ var testGND = (() => {
 		var gnd = new GridNeighborDetector(400, 400, 50);
 		var id1 = x1 + "," + y1;
 		var id2 = x2 + "," + y2;
-		// hack around the protection on the _add method so we can test without coordinate conversion
-		(<any> gnd)._add(id1, x1, y1);
-		(<any> gnd)._add(id2, x2, y2);
+		gnd.add(id1, x1, y1);
+		gnd.add(id2, x2, y2);
 		if (gnd.neighbors(id1).length != 1) {
 			console.error("expected", id1, "not to be neighbor of", id2);
 		}
