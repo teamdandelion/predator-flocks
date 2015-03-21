@@ -20,7 +20,7 @@ var C;
     C.PREDATOR_TURNS_TO_REPRODUCE = 1000;
     C.PREDATOR_AGE_FACTOR = 0.995;
     C.PREDATOR_ENERGY_FOR_REPRODUCTION = C.PREDATOR_FOOD_PER_PREY * C.PREDATOR_KILLS_FOR_REPRODUCTION;
-    C.FOOD_STARTING_LEVEL = 0.3;
+    C.FOOD_STARTING_LEVEL = 1;
     C.FOOD_STEPS_TO_REGEN = 8000;
     C.MAX_BOIDS = 100;
     C.COORDINATES_3D = false;
@@ -29,6 +29,7 @@ var C;
     C.COLOR_MUTATION_CONSTANT = 10;
     C.CONSUMPTION_TIME = 30;
     C.MIN_NUM_PREDATORS = 0;
+    C.FOOD_GRAZED_PER_STEP = 0.33;
 })(C || (C = {}));
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -239,18 +240,21 @@ var FoodBackground = (function () {
     };
     FoodBackground.prototype.getFoodAtTile = function (step, x, y) {
         var s = x.toString() + "," + y.toString();
-        var lastAccessTime;
+        var accessRecord;
         if (!this.xy2LastAccessTime.has(s)) {
-            lastAccessTime = Math.round(-C.FOOD_STARTING_LEVEL * C.FOOD_STEPS_TO_REGEN);
+            accessRecord = { lastAccessTimestep: 0, proportionLeft: C.FOOD_STARTING_LEVEL };
         }
         else {
-            lastAccessTime = this.xy2LastAccessTime.get(s);
+            accessRecord = this.xy2LastAccessTime.get(s);
         }
-        var food = (step - lastAccessTime) / C.FOOD_STEPS_TO_REGEN;
-        food = Math.min(food, 1);
-        this.xy2LastAccessTime.set(s, step);
+        var foodAvailable = accessRecord.proportionLeft + (step - accessRecord.lastAccessTimestep) / C.FOOD_STEPS_TO_REGEN;
+        foodAvailable = Math.min(foodAvailable, 1);
+        var foodTaken = Math.min(foodAvailable, C.FOOD_GRAZED_PER_STEP);
+        var foodRemaining = foodAvailable - foodTaken;
+        accessRecord = { lastAccessTimestep: step, proportionLeft: foodRemaining };
+        this.xy2LastAccessTime.set(s, accessRecord);
         this._eatenThisTurn.push([x, y]);
-        return food;
+        return foodTaken;
     };
     FoodBackground.prototype.getFood = function (position, step) {
         var x = Math.round(position.x);
@@ -711,7 +715,7 @@ window.onload = function () {
         }
     }
     var nonFlockPosition = newVector().randomize(400 * 0.5);
-    for (var i = 0; i < 10; i++) {
+    for (var i = 0; i < 0; i++) {
         world.addPrey(nonFlockingPreyGenetics(), world.randomSpot(), newVector());
     }
     for (var i = 0; i < 5; i++) {
@@ -802,7 +806,7 @@ var Renderer2D = (function () {
         }
         var eatenThisTurn = f.eatenThisTurn();
         eatenThisTurn.forEach(function (xy) {
-            ctx.fillStyle = "rgb(255,255,255)";
+            ctx.fillStyle = "rgba(255,255,255," + C.FOOD_GRAZED_PER_STEP + ")";
             ctx.beginPath();
             ctx.arc(xy[0], xy[1], 1, 0, 2 * Math.PI, false);
             ctx.fill();

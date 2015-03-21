@@ -11,20 +11,24 @@
 </head>
 
 <body>
-    <div id="buttons">
-        <button id="killAll"> Kill All Boids </button>
-        <button id="addFlocking"> Add Flocking Prey </button>
-        <button id="addNonFlocking"> Add Non-Flocking Prey </button>
-        <button id="addPredator"> Add Predator</button>
-    </div>
-
     <div id="container">
+        <div id="title" class="text">
+            <center>
+                <h1>Flocking</h1>
+            </center>
+            <center>
+                <h3> by Dan Mané</h3>
+            </center>
+            <center>
+                <span> Controls: </span>
+                <button id="killAll"> Kill All Boids </button>
+                <button id="addFlocking"> Add Flocking Prey </button>
+                <button id="addNonFlocking"> Add Non-Flocking Prey </button>
+                <button id="addPredator"> Add Predator</button>
+            </center>
+        </div>
         <div id="outer"></div>
-        <div id="text-container">
-            <h1>Predator/Prey Flocking</h1>
-
-            <h2>What is this?</h2>
-
+        <div id="text-container" class="text">
             <p>This is a simulation that combines predator/prey dynamics, the flocking algorithm, and natural selection. </p>
 
             <h2>The Boids</h2>

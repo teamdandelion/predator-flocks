@@ -79,7 +79,7 @@ class Renderer2D {
 
 		var eatenThisTurn = f.eatenThisTurn();
 		eatenThisTurn.forEach((xy: number[]) => {
-			ctx.fillStyle = "rgb(255,255,255)"
+			ctx.fillStyle = "rgba(255,255,255," + C.FOOD_GRAZED_PER_STEP + ")"
 			ctx.beginPath();
 			ctx.arc(xy[0], xy[1], 1, 0, 2*Math.PI, false);
 			ctx.fill();

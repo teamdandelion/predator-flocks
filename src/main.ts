@@ -15,7 +15,7 @@ window.onload = () => {
 	}
 
 	var nonFlockPosition = newVector().randomize(400 * 0.5);
-	for (var i=0; i<10; i++) {
+	for (var i=0; i<0; i++) {
 		world.addPrey(nonFlockingPreyGenetics(), world.randomSpot(), newVector());
 	}
 

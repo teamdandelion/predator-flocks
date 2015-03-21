@@ -29,7 +29,7 @@ module C {
 	export var PREDATOR_AGE_FACTOR = 0.995;
 	export var PREDATOR_ENERGY_FOR_REPRODUCTION = PREDATOR_FOOD_PER_PREY * PREDATOR_KILLS_FOR_REPRODUCTION;
 
-	export var FOOD_STARTING_LEVEL = 0.3;
+	export var FOOD_STARTING_LEVEL = 1;
 	export var FOOD_STEPS_TO_REGEN = 8000;
 
 	export var MAX_BOIDS = 100;
@@ -43,5 +43,6 @@ module C {
 
 	export var CONSUMPTION_TIME = 30; // time a predator needs to eat its food
 	export var MIN_NUM_PREDATORS = 0; // predators will not die if few are left alive
+	export var FOOD_GRAZED_PER_STEP = 0.33; // what proportion of max food on tile is eaten each step?
 
 }

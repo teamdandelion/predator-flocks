@@ -1,6 +1,11 @@
+interface FoodAccessRecord {
+	lastAccessTimestep: number;
+	proportionLeft: number;
+}
+
 class FoodBackground {
 	private stepsToRegen = 5000;
-	private xy2LastAccessTime: D3.Map<number>;
+	private xy2LastAccessTime: D3.Map<FoodAccessRecord>;
 	private _eatenThisTurn: number[][];
 
 
@@ -18,20 +23,23 @@ class FoodBackground {
 	public getFoodAtTile(step: number, x: number, y: number) {
 		var s = x.toString() + "," + y.toString();
 
-		var lastAccessTime: number;
+		var accessRecord: FoodAccessRecord;
 		if (!this.xy2LastAccessTime.has(s)) {
 			// set so if it were accessed at time 0, it would have STARTING_LEVEL
 			// (0 - lastTime) / STEPS_TO_REGEN = STARTING_LEVEL
 			// -lastTime = STARTING_LEVEL * STEPS_TO_REGEN
-			lastAccessTime = Math.round(-C.FOOD_STARTING_LEVEL * C.FOOD_STEPS_TO_REGEN);
+			accessRecord = {lastAccessTimestep: 0, proportionLeft: C.FOOD_STARTING_LEVEL};
 		} else {
-			lastAccessTime = this.xy2LastAccessTime.get(s);
+			accessRecord = this.xy2LastAccessTime.get(s);
 		}
-		var food = (step - lastAccessTime) / C.FOOD_STEPS_TO_REGEN;
-		food = Math.min(food, 1);
-		this.xy2LastAccessTime.set(s, step);
+		var foodAvailable = accessRecord.proportionLeft + (step - accessRecord.lastAccessTimestep) / C.FOOD_STEPS_TO_REGEN;
+		foodAvailable = Math.min(foodAvailable, 1);
+		var foodTaken = Math.min(foodAvailable, C.FOOD_GRAZED_PER_STEP);
+		var foodRemaining = foodAvailable - foodTaken;
+		accessRecord = {lastAccessTimestep: step, proportionLeft: foodRemaining };
+		this.xy2LastAccessTime.set(s, accessRecord);
 		this._eatenThisTurn.push([x,y]);
-		return food;
+		return foodTaken;
 	}
 
 	public getFood(position: Vector, step: number) {

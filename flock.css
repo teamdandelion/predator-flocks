@@ -1,16 +1,41 @@
+body {
+    background-color: rgb(0, 255, 0);
+    font-family: Helvetica, sans-serif;
+}
 svg, canvas {
     position: fixed;
     left: 0;
     top: 0;
+    z-index: -1;
 }
-#text-container {
-    position: absolute;
-    top: 800px;
+#title {
+    padding: 5px;
+    width: 40%;
+    margin-left: 30%;
+}
+.text {
     background-color: rgba(255, 255, 255, 0.9);
     color: black;
-    width: 70%;
-    margin-left: 15%;
-    font-family: Helvetica, sans-serif;
     border-radius: 10px;
+}
+#text-container {
+    margin-left: 15%;
+    width: 70%;
     padding: 20px;
+    margin-bottom: 30px;
+    position: absolute;
+    top: 800px;
+}
+h1 {
+    font-size: 30px;
+}
+h2 {
+    font-size: 25px;
+}
+h3 {
+    font-size: 20px;
+}
+p {
+    font-size: 18px;
+    line-height: 24px
 }
