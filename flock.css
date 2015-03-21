@@ -1,11 +1,16 @@
-#outer {
-    position: relative;
-}
-#buttons {
-    position: relative;
-}
 svg, canvas {
-    position: absolute;
+    position: fixed;
     left: 0;
     top: 0;
+}
+#text-container {
+    position: absolute;
+    top: 800px;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: black;
+    width: 70%;
+    margin-left: 15%;
+    font-family: Helvetica, sans-serif;
+    border-radius: 10px;
+    padding: 20px;
 }
