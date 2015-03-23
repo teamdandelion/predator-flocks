@@ -18,6 +18,8 @@ class Boid {
 	public maxForce: number;
 	public stepsSinceLastReproduction = 0;
 	public ageFactor: number;
+	public isMouseBoid = false;
+	public isAlive = true;
 
 	constructor(initialPosition: Vector, initialVelocity: Vector, genetics: Genetics) {
 		// cute hack to get seperate default for Prey or Predator depending on which constructor was invoked.
@@ -222,3 +224,27 @@ class Predator extends Boid {
 	}
 }
 
+class MousePrey extends Prey {
+	constructor(initialPosition, genetics) {
+		super(initialPosition, new Vector2(), genetics);
+		this.isMouseBoid = true;
+	}
+	public step(worldX, worldY) {
+		return;
+	}
+	public accelerate(world) {
+		return;
+	}
+}
+class MousePredator extends Predator {
+	constructor(initialPosition, genetics) {
+		super(initialPosition, new Vector2(), genetics);
+		this.isMouseBoid = true;
+	}
+	public step(worldX, worldY) {
+		return;
+	}
+	public accelerate(world) {
+		return;
+	}
+}

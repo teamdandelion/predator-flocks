@@ -86,6 +86,7 @@ class World {
 		if (!b.isPrey) {
 			this.renderer.addCorpseToRender(b);
 		}
+		b.isAlive = false;
 
 	}
 
@@ -161,7 +162,7 @@ class World {
 				this.reproduceBoid(b);
 				nBoids++;
 			} else if (b.food < 0) {
-				if (!b.isPrey && nPredators <= C.MIN_NUM_PREDATORS && nPrey > 0) {
+				if (!b.isPrey && nPredators <= C.MIN_NUM_PREDATORS && nPrey > 0 || b.isMouseBoid) {
 				// if there's just MIN_PREDATORS predator, let's allow it to survive unless there's an extinction event
 					b.food = 0;
 					b.age = 0;

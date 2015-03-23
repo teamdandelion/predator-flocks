@@ -13,7 +13,7 @@
 <body>
     <div id="container">
         <div id="front-page">
-            <div id="title" class="text">
+            <div id="title" class="text front-text">
                 <center>
                     <h1>Flocking</h1>
                 </center>
@@ -22,16 +22,20 @@
                 </center>
                 <center>
                     <span> Controls: </span>
-                    <button id="killAll"> Kill All Boids </button>
-                    <button id="addFlocking"> Add Flocking Prey </button>
-                    <button id="addNonFlocking"> Add Non-Flocking Prey </button>
-                    <button id="addPredator"> Add Predator</button>
+                    <button id="killAll"> Kill All </button>
+                    <button id="addFlocking"> Add Herbivore </button>
+                    <button id="addPredator"> Add Carnivore</button>
+                </center>
+                <center><i class="small">(Click to turn the mouse into a Herbivore; click again to make a Carnivore)</i>
                 </center>
             </div>
+            <div id="bottom">
+                <p> Scroll for more</p>
+            </div>
+
         </div>
-        <div id="filler"></div>
         <div id="outer"></div>
-        <div id="text-container" class="text">
+        <div id="text-container" class="text front-text">
             <p>This is a simulation that combines predator/prey dynamics, the flocking algorithm, and natural selection. </p>
 
             <h2>The Boids</h2>

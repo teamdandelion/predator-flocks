@@ -29,8 +29,49 @@ window.onload = () => {
 	setInterval(go, 16);
 	document.getElementById("addPredator").onclick = addPredator
 	document.getElementById("addFlocking").onclick = addFlockingPrey
-	document.getElementById("addNonFlocking").onclick = addNonFlockingPrey
 	document.getElementById("killAll").onclick = killAllBoids
+	document.getElementById("container").onclick = mouseClick;
+	document.getElementById("container").onmousemove = mouseMove;
+}
+
+var mouseBoid = null;
+
+function mouseClick(e) {
+	if (mouseBoid != null && !mouseBoid.isAlive) {
+		mouseBoid = null;
+		document.body.style.cursor = "auto";
+	}
+	var p = new Vector2(e.clientX, e.clientY);
+	if (mouseBoid != null) {
+		world.removeBoid(mouseBoid);
+	}
+	if (mouseBoid == null) {
+		mouseBoid = new MousePrey(p, flockingPreyGenetics())
+		document.body.style.cursor = "none";
+	} else if (mouseBoid.isPrey) {
+		mouseBoid = new MousePredator(p, predatorGenetics());
+		document.body.style.cursor = "none";
+	} else {
+		mouseBoid = null;
+		document.body.style.cursor = "auto";
+	}
+	if (mouseBoid != null) {
+		world.addBoid(mouseBoid);
+	}
+}
+
+function mouseMove(e) {
+	if (mouseBoid != null && !mouseBoid.isAlive) {
+		mouseBoid = null;
+		document.body.style.cursor = "auto";
+	}
+	console.log("move")
+	if (mouseBoid != null) {
+		var pos = new Vector2(e.clientX, e.clientY);
+		var vel = pos.clone().subtract(mouseBoid.position);
+		mouseBoid.position = pos;
+		mouseBoid.vel = vel;
+	}
 }
 
 function addPredator() {

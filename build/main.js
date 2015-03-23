@@ -41,6 +41,8 @@ var Boid = (function () {
     function Boid(initialPosition, initialVelocity, genetics) {
         this.age = 0;
         this.stepsSinceLastReproduction = 0;
+        this.isMouseBoid = false;
+        this.isAlive = true;
         this.isPrey = this.constructor.IS_PREY;
         this.position = initialPosition.clone();
         this.velocity = initialVelocity.clone().limit(this.maxSpeed());
@@ -227,6 +229,34 @@ var Predator = (function (_super) {
     Predator.IS_PREY = false;
     return Predator;
 })(Boid);
+var MousePrey = (function (_super) {
+    __extends(MousePrey, _super);
+    function MousePrey(initialPosition, genetics) {
+        _super.call(this, initialPosition, new Vector2(), genetics);
+        this.isMouseBoid = true;
+    }
+    MousePrey.prototype.step = function (worldX, worldY) {
+        return;
+    };
+    MousePrey.prototype.accelerate = function (world) {
+        return;
+    };
+    return MousePrey;
+})(Prey);
+var MousePredator = (function (_super) {
+    __extends(MousePredator, _super);
+    function MousePredator(initialPosition, genetics) {
+        _super.call(this, initialPosition, new Vector2(), genetics);
+        this.isMouseBoid = true;
+    }
+    MousePredator.prototype.step = function (worldX, worldY) {
+        return;
+    };
+    MousePredator.prototype.accelerate = function (world) {
+        return;
+    };
+    return MousePredator;
+})(Predator);
 var FoodBackground = (function () {
     function FoodBackground() {
         this.stepsToRegen = 5000;
@@ -548,6 +578,7 @@ var World = (function () {
         if (!b.isPrey) {
             this.renderer.addCorpseToRender(b);
         }
+        b.isAlive = false;
     };
     World.prototype.reproduceBoid = function (mom) {
         var potentialParents = this.neighbors(mom, mom.isPrey);
@@ -613,7 +644,7 @@ var World = (function () {
                 nBoids++;
             }
             else if (b.food < 0) {
-                if (!b.isPrey && nPredators <= C.MIN_NUM_PREDATORS && nPrey > 0) {
+                if (!b.isPrey && nPredators <= C.MIN_NUM_PREDATORS && nPrey > 0 || b.isMouseBoid) {
                     b.food = 0;
                     b.age = 0;
                 }
@@ -728,9 +759,49 @@ window.onload = function () {
     setInterval(go, 16);
     document.getElementById("addPredator").onclick = addPredator;
     document.getElementById("addFlocking").onclick = addFlockingPrey;
-    document.getElementById("addNonFlocking").onclick = addNonFlockingPrey;
     document.getElementById("killAll").onclick = killAllBoids;
+    document.getElementById("container").onclick = mouseClick;
+    document.getElementById("container").onmousemove = mouseMove;
 };
+var mouseBoid = null;
+function mouseClick(e) {
+    if (mouseBoid != null && !mouseBoid.isAlive) {
+        mouseBoid = null;
+        document.body.style.cursor = "auto";
+    }
+    var p = new Vector2(e.clientX, e.clientY);
+    if (mouseBoid != null) {
+        world.removeBoid(mouseBoid);
+    }
+    if (mouseBoid == null) {
+        mouseBoid = new MousePrey(p, flockingPreyGenetics());
+        document.body.style.cursor = "none";
+    }
+    else if (mouseBoid.isPrey) {
+        mouseBoid = new MousePredator(p, predatorGenetics());
+        document.body.style.cursor = "none";
+    }
+    else {
+        mouseBoid = null;
+        document.body.style.cursor = "auto";
+    }
+    if (mouseBoid != null) {
+        world.addBoid(mouseBoid);
+    }
+}
+function mouseMove(e) {
+    if (mouseBoid != null && !mouseBoid.isAlive) {
+        mouseBoid = null;
+        document.body.style.cursor = "auto";
+    }
+    console.log("move");
+    if (mouseBoid != null) {
+        var pos = new Vector2(e.clientX, e.clientY);
+        var vel = pos.clone().subtract(mouseBoid.position);
+        mouseBoid.position = pos;
+        mouseBoid.vel = vel;
+    }
+}
 function addPredator() {
     world.addPredator(predatorGenetics());
 }
