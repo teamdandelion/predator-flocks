@@ -27,10 +27,10 @@ class Renderer2D {
 		ctx.closePath()
 	}
 
-	public renderBoids(boids: _Boid[], isPrey: boolean) {
+	public renderBoids(boids: Boid[], isPrey: boolean) {
 		var selection = isPrey ? this.prey : this.predators;
 
-		var colorF = (b: _Boid) => {
+		var colorF = (b: Boid) => {
 			return "hsl(" + b.genetics.color + ",100%, 50%)";
 		}
 
@@ -47,9 +47,9 @@ class Renderer2D {
 
 	}
 
-	private corpsesToRender: _Boid[] = [];
+	private corpsesToRender: Boid[] = [];
 	// Wrapper method, since I prefer not to have other classes directly touching renderer2D's data structs
-	public addCorpseToRender(boid: _Boid) {
+	public addCorpseToRender(boid: Boid) {
 		this.corpsesToRender.push(boid);
 	}
 

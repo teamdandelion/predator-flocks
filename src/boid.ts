@@ -1,5 +1,5 @@
 /// <reference path="constants.ts" />
-class _Boid {
+class Boid {
 	public static SPEED_FACTOR: number;
 	protected static IS_PREY: boolean;
 	private static ID_INCREMENTER = 0;
@@ -21,11 +21,11 @@ class _Boid {
 
 	constructor(initialPosition: Vector, initialVelocity: Vector, genetics: Genetics) {
 		// cute hack to get seperate default for Prey or Predator depending on which constructor was invoked.
-		this.isPrey = (<typeof _Boid> this.constructor).IS_PREY; 
+		this.isPrey = (<typeof Boid> this.constructor).IS_PREY; 
 		this.position = initialPosition.clone();
 		this.velocity = initialVelocity.clone().limit(this.maxSpeed());
 		this.genetics = genetics;
-		this.boidID = (_Boid.ID_INCREMENTER++).toString();
+		this.boidID = (Boid.ID_INCREMENTER++).toString();
 	}
 
 	public canReproduce(): boolean {
@@ -61,7 +61,7 @@ class _Boid {
 	}
 
 	public maxSpeed() {
-		return (<typeof _Boid> this.constructor).SPEED_FACTOR * C.BASE_SPEED * Math.pow(this.ageFactor, Math.round(this.age/60))
+		return (<typeof Boid> this.constructor).SPEED_FACTOR * C.BASE_SPEED * Math.pow(this.ageFactor, Math.round(this.age/60))
 	}
 
 	public gainFood(f: number) {
@@ -96,7 +96,7 @@ class _Boid {
 		this.velocity.add(a).limit(this.maxSpeed());
 	}
 
-	private seperate(neighbors: _Boid[], seperationRadius: number) {
+	private seperate(neighbors: Boid[], seperationRadius: number) {
 		// This code is based on implementation by Harry Bundage found at http://harry.me/blog/2011/02/17/neat-algorithms-flocking/
 		var seperationVector = newVector();
 		var count = 0;
@@ -121,7 +121,7 @@ class _Boid {
 
 	}
 
-	private align(neighbors: _Boid[]) {
+	private align(neighbors: Boid[]) {
 		// This code is based on implementation by Harry Bundage found at http://harry.me/blog/2011/02/17/neat-algorithms-flocking/
 		var averageVelocity = newVector();
 		var count = 0;
@@ -139,7 +139,7 @@ class _Boid {
 		return averageVelocity;
 	}
 
-	private cohere(neighbors: _Boid[]){
+	private cohere(neighbors: Boid[]){
 		// This code is based on implementation by Harry Bundage found at http://harry.me/blog/2011/02/17/neat-algorithms-flocking/
 		var averagePosition = newVector();
 		var count = 0;
@@ -178,7 +178,7 @@ class _Boid {
 		return steer;
 	}
 
-	private flock(neighbors: _Boid[], config: FlockConfig): Vector {
+	private flock(neighbors: Boid[], config: FlockConfig): Vector {
 		// This code is based on implementation by Harry Bundage found at http://harry.me/blog/2011/02/17/neat-algorithms-flocking/
 		var s = this.seperate(neighbors, config.seperationRadius).mult(config.seperationWeight);
 		var a = this.align(neighbors).mult(config.alignmentWeight);
@@ -187,7 +187,7 @@ class _Boid {
 	}
 }
 
-class Prey extends _Boid {
+class Prey extends Boid {
 	public static SPEED_FACTOR = C.PREY_SPEED_FACTOR;
 	protected static IS_PREY = true;
 	public radius = C.PREY_RADIUS;
@@ -199,7 +199,7 @@ class Prey extends _Boid {
 	public ageFactor = C.PREY_AGE_FACTOR;
 }
 
-class Predator extends _Boid {
+class Predator extends Boid {
 	public static SPEED_FACTOR = C.PREDATOR_SPEED_FACTOR;
 	protected static IS_PREY = false;
 

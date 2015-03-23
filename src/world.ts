@@ -37,8 +37,8 @@ class World {
 		this.addBoid(p);
 	}
 
-	public addBoid(b: _Boid) {
-		var addTo: {[key: string]: _Boid} = b.isPrey ? this.prey : this.predators;
+	public addBoid(b: Boid) {
+		var addTo: {[key: string]: Boid} = b.isPrey ? this.prey : this.predators;
 		var id = b.boidID;
 		if (addTo[id]) {
 			console.error("Duplicate boid with id", id);
@@ -51,18 +51,18 @@ class World {
 		allBoids.forEach((b) => this.removeBoid(b));
 	}
 
-	public neighbors(b: _Boid, prey: boolean): _Boid[] {
+	public neighbors(b: Boid, prey: boolean): Boid[] {
 		var mapToSearch = prey ? this.prey : this.predators;
 		var isRightType = (id: string) => !!mapToSearch[id];
-		var inRange = (x: _Boid) => b.position.distance(x.position) <= C.NEIGHBOR_RADIUS;
+		var inRange = (x: Boid) => b.position.distance(x.position) <= C.NEIGHBOR_RADIUS;
 		
-		var compareFn = (b1: _Boid, b2: _Boid) => {
+		var compareFn = (b1: Boid, b2: Boid) => {
 			var d1 = b1.position.distance(b.position);
 			var d2 = b2.position.distance(b.position);
 			return d1 - d2;
 		}
 
-		var neighborsToCheck: _Boid[];
+		var neighborsToCheck: Boid[];
 		if (b.isPrey) {
 			neighborsToCheck = this.neighborDetector.neighbors(b.boidID)
 									.filter(isRightType)
@@ -76,7 +76,7 @@ class World {
 					.slice(0, NUM_NEIGHBORS_TO_SHOW);
 	}
 
-	public removeBoid(b: _Boid) {
+	public removeBoid(b: Boid) {
 		var removeFrom = b.isPrey ? this.prey : this.predators;
 		if (!removeFrom[b.boidID]) {
 			console.error("tried to remove non-existent boid", b.boidID);
@@ -89,14 +89,14 @@ class World {
 
 	}
 
-	private reproduceBoid(mom: _Boid) {
-		var potentialParents: _Boid[] = this.neighbors(mom, mom.isPrey);
-		var dad: _Boid;
+	private reproduceBoid(mom: Boid) {
+		var potentialParents: Boid[] = this.neighbors(mom, mom.isPrey);
+		var dad: Boid;
 		if (potentialParents.length == 1) {
 			dad = mom; // awwwwkward....
 		} else {
 			var minDistance = Infinity;
-			potentialParents.forEach((p: _Boid) => {
+			potentialParents.forEach((p: Boid) => {
 				var dist = p.position.distance(mom.position);
 				if (p != mom && dist < minDistance) {
 					minDistance = dist;
@@ -156,7 +156,7 @@ class World {
 		allBoids = boidsFromMap(this.prey).concat(boidsFromMap(this.predators)); 
 		allBoids.forEach((b) => {
 			b.food -= b.foodEatenPerStep;
-			if (b.canReproduce() && (nBoids < C.MAX_BOIDS || !b.isPrey)) {
+			if (b.canReproduce() && (nBoids < C.MAXBoidS || !b.isPrey)) {
 				// if we have hit max boids, we still allow predators to reproduce
 				this.reproduceBoid(b);
 				nBoids++;
@@ -183,4 +183,4 @@ class World {
 }
 
 // Utility method to get all of the boids out of a map from IDs to boids
-var boidsFromMap = (m: {[key: string]: _Boid}) => Object.keys(m).map((k) => m[k]);
+var boidsFromMap = (m: {[key: string]: Boid}) => Object.keys(m).map((k) => m[k]);

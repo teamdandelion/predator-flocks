@@ -32,7 +32,7 @@ module C {
 	export var FOOD_STARTING_LEVEL = 1;
 	export var FOOD_STEPS_TO_REGEN = 8000;
 
-	export var MAX_BOIDS = 300;
+	export var MAXBoidS = 300;
 
 	export var COORDINATES_3D = false;
 
