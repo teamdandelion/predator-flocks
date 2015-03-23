@@ -2,7 +2,7 @@ module C {
 
 	// Flocking and movement constants
 	export var NEIGHBOR_RADIUS = 50;
-	export var BASE_SPEED = 1;
+	export var BASE_SPEED = 1.5;
 
 	// Boid-specific movement and size
 	export var PREY_RADIUS = 2;
@@ -32,7 +32,7 @@ module C {
 	export var FOOD_STARTING_LEVEL = 1;
 	export var FOOD_STEPS_TO_REGEN = 8000;
 
-	export var MAX_BOIDS = 100;
+	export var MAX_BOIDS = 300;
 
 	export var COORDINATES_3D = false;
 

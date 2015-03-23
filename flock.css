@@ -8,6 +8,15 @@ svg, canvas {
     top: 0;
     z-index: -1;
 }
+#front-page {
+    height: 100%;
+}
+#container {
+    height: 100%;
+}
+html, body {
+    height: 100%;
+}
 #title {
     padding: 5px;
     width: 40%;
@@ -23,8 +32,6 @@ svg, canvas {
     width: 70%;
     padding: 20px;
     margin-bottom: 30px;
-    position: absolute;
-    top: 800px;
 }
 h1 {
     font-size: 30px;
