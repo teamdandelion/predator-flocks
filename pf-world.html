@@ -1,0 +1,30 @@
+<link rel="import" href="bower_components/polymer/polymer.html">
+<dom-module id="pf-main">
+  <template>
+    <svg>
+    </svg>
+    <style>
+      :host {
+        width: 100%;
+        height: 100%;
+      }
+      svg {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </template>
+  <script src="build/main.js"></script>
+  <script>
+  Polymer({
+    is: "pf-main",
+    properties: {
+      world: {
+        type: Object,
+        value: PF.generateWorld();
+        readOnly: true,
+      },
+    },
+  });
+  </script>
+</dom-module>

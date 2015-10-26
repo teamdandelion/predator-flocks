@@ -9,8 +9,8 @@ class Renderer2D {
 	private prey: D3.Selection;
 	private predators: D3.Selection;
 	private foodCounter = 0;
-	constructor(private width: number, private height: number, divID: string) {
-		this.div = d3.select(divID);
+	constructor(private width: number, private height: number, div: Element) {
+		this.div = d3.select(div);
 		this.canvas = this.div.append("canvas").attr("width", this.width).attr("height", this.height).node();
 		this.svg = this.div.append("svg").attr("width", this.width).attr("height", this.height);
 		this.prey = this.svg.append("g").classed("prey",true);
